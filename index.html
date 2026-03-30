@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10,000hrs — Master Anything</title>
+<meta name="description" content="Track your 10,000 hours to expertise. AI coach, practice timer, achievements.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--card:#16161f;--card2:#1e1e2a;--bg3:#1a1a24;
+  --b1:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.12);
+  --t1:#f0f0f5;--t2:#9090a8;--t3:#55556a;
+  --ac:#e8ff47;--ac2:#b8d400;--acd:rgba(232,255,71,0.12);--acd2:rgba(232,255,71,0.06);--acb:rgba(232,255,71,0.22);
+  --blue:#4d9fff;--bluedim:rgba(77,159,255,0.1);
+  --red:#ff4d6d;--reddim:rgba(255,77,109,0.1);
+  --gold:#ffd166;--golddim:rgba(255,209,102,0.1);
+  --r:12px;--rl:18px;
+  --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:var(--fb);}
+#app{max-width:680px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+/* Lang bar */
+.lang-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.75rem;background:var(--card);border:1px solid var(--b2);border-radius:var(--r);padding:10px 14px;}
+.lg{font-size:15px;flex-shrink:0;}
+.ll{font-size:11px;color:var(--t3);font-family:var(--fm);white-space:nowrap;}
+.ls{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:1px;}
+.ls::-webkit-scrollbar{height:2px;}
+.ls::-webkit-scrollbar-thumb{background:var(--b2);border-radius:999px;}
+.lb{padding:5px 11px;border-radius:999px;border:1px solid var(--b1);font-size:11px;cursor:pointer;color:var(--t3);background:transparent;white-space:nowrap;transition:all 0.15s;font-family:var(--fm);flex-shrink:0;}
+.lb:hover{color:var(--t2);border-color:var(--b2);}
+.lb.on{background:var(--acd);color:var(--ac);border-color:var(--acb);font-weight:500;}
+
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;gap:12px;}
+.app-title{font-family:var(--fd);font-size:28px;font-weight:700;letter-spacing:-0.5px;line-height:1.1;}
+.app-title span{color:var(--ac);}
+.app-sub{font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm);}
+.streak{background:var(--acd);border:1px solid var(--acb);border-radius:999px;padding:6px 14px;font-size:11px;color:var(--ac);font-family:var(--fm);white-space:nowrap;flex-shrink:0;}
+
+/* Skills */
+.skill-row{display:flex;gap:8px;margin-bottom:1.75rem;overflow-x:auto;padding-bottom:2px;}
+.sp{padding:7px 18px;border-radius:999px;border:1px solid var(--b2);font-size:13px;font-weight:500;cursor:pointer;color:var(--t2);background:var(--card);white-space:nowrap;transition:all 0.18s;}
+.sp.on{background:var(--ac);color:#0a0a0f;border-color:var(--ac);font-weight:600;}
+.sp:hover:not(.on){background:var(--card2);}
+.sp.add{border-style:dashed;color:var(--t3);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1.5rem;}
+.sbox{background:var(--card);border:1px solid var(--b1);border-radius:var(--r);padding:15px;}
+.sbox.hi{border-color:var(--acb);background:var(--acd2);}
+.slbl{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;font-family:var(--fm);margin-bottom:5px;}
+.sval{font-size:21px;font-weight:600;color:var(--t1);font-family:var(--fd);letter-spacing:-0.5px;}
+.sval .u{font-size:11px;color:var(--t3);font-weight:400;font-family:var(--fm);}
+.ssub{font-size:10px;color:var(--t3);margin-top:3px;font-family:var(--fm);}
+
+/* Progress */
+.prog{margin-bottom:1.75rem;}
+.prog-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);font-family:var(--fm);margin-bottom:7px;}
+.prog-meta span:first-child{color:var(--ac);font-weight:500;}
+.prog-track{height:4px;background:var(--card2);border-radius:999px;position:relative;}
+.prog-fill{height:100%;background:var(--ac);border-radius:999px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative;}
+.prog-fill::after{content:'';position:absolute;right:-1px;top:-3px;width:10px;height:10px;background:var(--ac);border-radius:50%;border:2px solid var(--bg);}
+
+/* Badges */
+.bwrap{margin-bottom:1.75rem;}
+.sec-lbl{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;font-family:var(--fm);margin-bottom:10px;}
+.bscroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+.bitem{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 9px;border-radius:var(--r);border:1px solid var(--b1);background:var(--card);min-width:66px;flex-shrink:0;transition:all 0.25s;}
+.bitem.got{border-color:rgba(255,209,102,0.35);background:var(--golddim);}
+.bitem.got .bicon{filter:none;animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+.bicon{font-size:20px;filter:grayscale(1) brightness(0.35);transition:all 0.25s;}
+.bhrs{font-size:10px;color:var(--t3);font-family:var(--fm);}
+.bitem.got .bhrs{color:var(--gold);}
+.bdone{font-size:9px;color:var(--gold);font-family:var(--fm);}
+@keyframes pop{0%{transform:scale(0.5);}100%{transform:scale(1);}}
+
+/* Smart tip */
+.smart-tip{display:none;align-items:center;gap:10px;background:var(--card);border:1px solid var(--acb);border-radius:var(--r);padding:11px 14px;margin-bottom:1.25rem;}
+.smart-tip.show{display:flex;}
+.tip-txt{font-size:13px;color:var(--t2);flex:1;line-height:1.5;}
+.tip-txt b{color:var(--ac);}
+
+/* AI notif banner */
+.ai-notif{display:none;margin-bottom:1.25rem;border-radius:var(--r);overflow:hidden;border:1px solid var(--acb);background:var(--acd2);animation:slideDown 0.3s ease;}
+.ai-notif.show{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.ai-notif-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(232,255,71,0.1);}
+.ai-pulse{width:6px;height:6px;border-radius:50%;background:var(--ac);animation:glow 1.8s infinite;}
+@keyframes glow{0%,100%{opacity:1;}50%{opacity:0.35;}}
+.ai-notif-title{font-size:12px;font-weight:600;color:var(--ac);font-family:var(--fd);}
+.ai-notif-sub{font-size:10px;color:var(--t3);font-family:var(--fm);margin-left:auto;}
+.ai-notif-body{padding:12px 14px;font-size:13px;color:var(--t2);line-height:1.6;}
+.ai-notif-body b{color:var(--t1);}
+.ai-notif-body .hl{color:var(--ac);font-weight:500;}
+.notif-dismiss{display:flex;justify-content:flex-end;padding:0 14px 10px;}
+.notif-dismiss button{font-size:11px;color:var(--t3);font-family:var(--fm);cursor:pointer;background:none;border:none;padding:3px 8px;border-radius:6px;}
+.notif-dismiss button:hover{color:var(--t2);background:var(--card2);}
+
+/* Rest banner */
+.rest-bar{display:none;align-items:center;justify-content:space-between;background:var(--bluedim);border:1px solid rgba(77,159,255,0.2);border-radius:10px;padding:11px 16px;margin-bottom:1.25rem;font-size:13px;}
+.rest-bar.show{display:flex;}
+.rest-left{color:var(--blue);font-weight:500;}
+.rest-time{font-family:var(--fm);font-size:12px;color:var(--blue);}
+
+/* Timer */
+.tcrd{background:var(--card);border:1px solid var(--b1);border-radius:var(--rl);padding:2rem 1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.tcrd::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:0;transition:opacity 0.3s;}
+.tcrd.active::before{opacity:1;}
+.tcrd.resting::before{background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:1;}
+.tbig{font-family:var(--fm);font-size:60px;font-weight:500;text-align:center;letter-spacing:-1px;margin-bottom:4px;}
+.tstat{text-align:center;font-size:11px;color:var(--t3);font-family:var(--fm);margin-bottom:1.5rem;}
+.tstat b{color:var(--ac);font-weight:500;}
+.pips{display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;}
+.pip{width:30px;height:4px;border-radius:999px;background:var(--bg3);transition:all 0.3s;}
+.pip.done{background:var(--ac);}
+.pip.cur{background:rgba(232,255,71,0.35);}
+.bclust{display:flex;gap:10px;justify-content:center;}
+.btn{padding:11px 30px;border-radius:10px;border:1px solid var(--b2);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.18s;font-family:var(--fb);}
+.btn:active{transform:scale(0.97);}
+.btn-s{background:var(--ac);color:#0a0a0f;border-color:var(--ac);font-weight:600;}
+.btn-s:hover{background:var(--ac2);}
+.btn-p{background:transparent;color:var(--t2);border-color:var(--b2);}
+.btn-p:hover{background:var(--card2);}
+.btn-e{background:transparent;color:var(--red);border-color:rgba(255,77,109,0.2);}
+.btn-e:hover{background:var(--reddim);}
+.btn-sk{background:var(--bluedim);color:var(--blue);border-color:rgba(77,159,255,0.2);}
+
+/* Settings */
+.setwrap{border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:1.75rem;}
+.sethead{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;font-size:13px;color:var(--t2);font-weight:500;}
+.sethead:hover{background:var(--card2);}
+.sethead .arr{font-family:var(--fm);color:var(--t3);transition:transform 0.2s;}
+.sethead .arr.open{transform:rotate(90deg);}
+.setbody{display:none;padding:15px 16px;border-top:1px solid var(--b1);background:var(--card);}
+.setbody.open{display:block;}
+.pchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;}
+.pc{padding:5px 12px;border-radius:999px;border:1px solid var(--b2);font-size:11px;cursor:pointer;background:transparent;color:var(--t2);transition:all 0.15s;font-family:var(--fm);}
+.pc:hover{background:var(--card2);}
+.pc.on{background:var(--acd);color:var(--ac);border-color:var(--acb);}
+.srow{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.srow:last-child{margin-bottom:0;}
+.srow label{font-size:11px;color:var(--t3);width:78px;flex-shrink:0;font-family:var(--fm);}
+.srow input[type=range]{flex:1;accent-color:var(--ac);}
+.srow .sv{font-size:11px;font-weight:500;color:var(--t1);min-width:48px;text-align:right;font-family:var(--fm);}
+
+/* AI coach panel */
+.ai-panel{margin-bottom:1.75rem;}
+.ai-card{background:var(--card);border:1px solid var(--b1);border-radius:var(--rl);overflow:hidden;}
+.ai-hdr{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--b1);}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--ac);box-shadow:0 0 6px var(--ac);}
+.ai-nm{font-size:13px;font-weight:600;color:var(--ac);font-family:var(--fd);}
+.ai-tag{font-size:10px;color:var(--t3);font-family:var(--fm);margin-left:auto;}
+.ai-body{padding:15px 16px;}
+.ai-msg{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:13px;min-height:36px;}
+.ai-msg b{color:var(--t1);font-weight:500;}
+.ai-msg .hl{color:var(--ac);font-weight:500;}
+.ai-acts{display:flex;gap:7px;flex-wrap:wrap;}
+.aibtn{padding:7px 14px;border-radius:8px;border:1px solid var(--b2);font-size:12px;cursor:pointer;background:transparent;color:var(--t2);transition:all 0.15s;font-family:var(--fb);}
+.aibtn:hover{background:var(--card2);}
+.aibtn:disabled{opacity:0.4;cursor:not-allowed;}
+.aibtn.pri{background:var(--acd);color:var(--ac);border-color:var(--acb);}
+.ld{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t3);font-family:var(--fm);}
+.dots span{width:4px;height:4px;border-radius:50%;background:var(--ac);display:inline-block;animation:pu 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:0.2s;}
+.dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes pu{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}
+
+/* Log */
+.logwrap{margin-bottom:1rem;}
+.litem{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--b1);}
+.litem:last-child{border-bottom:none;}
+.lleft{display:flex;align-items:center;gap:9px;}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--ac);flex-shrink:0;}
+.ldate{font-size:11px;color:var(--t3);font-family:var(--fm);}
+.ltag{font-size:11px;background:var(--acd);color:var(--ac);padding:2px 8px;border-radius:999px;font-family:var(--fm);}
+.ldur{font-size:13px;font-weight:500;color:var(--t1);font-family:var(--fm);}
+.elog{text-align:center;padding:1.75rem;font-size:12px;color:var(--t3);font-family:var(--fm);}
+
+/* Session done popup */
+.done-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:150;align-items:center;justify-content:center;padding:1rem;}
+.done-overlay.show{display:flex;animation:fadeIn 0.25s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.done-card{background:var(--card);border:1px solid var(--acb);border-radius:20px;width:100%;max-width:360px;overflow:hidden;}
+.done-topbar{height:3px;background:var(--ac);}
+.done-inner{padding:1.75rem 1.5rem 1.5rem;}
+.done-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.done-skill{font-size:11px;font-family:var(--fm);color:var(--t3);background:var(--card2);border:1px solid var(--b2);padding:4px 12px;border-radius:999px;}
+.done-time{font-size:11px;font-family:var(--fm);color:var(--t3);}
+.done-center{text-align:center;margin-bottom:1.5rem;}
+.ring-wrap{position:relative;width:84px;height:84px;margin:0 auto 1.1rem;}
+.ring-svg{width:84px;height:84px;transform:rotate(-90deg);}
+.rbg{fill:none;stroke:var(--card2);stroke-width:3;}
+.rfg{fill:none;stroke:var(--ac);stroke-width:3;stroke-linecap:round;stroke-dasharray:232;transition:stroke-dashoffset 0.9s ease;}
+.ring-mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-n{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--t1);line-height:1;}
+.ring-u{font-size:9px;font-family:var(--fm);color:var(--t3);letter-spacing:0.5px;}
+.done-headline{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--t1);margin-bottom:4px;letter-spacing:-0.2px;}
+.done-sub{font-size:12px;color:var(--t2);line-height:1.5;}
+.done-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:1.25rem;}
+.dc{background:var(--card2);border-radius:9px;padding:10px 7px;text-align:center;border:1px solid var(--b1);}
+.dc .dv{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--t1);}
+.dc.hi .dv{color:var(--ac);}
+.dc .dl{font-size:9px;font-family:var(--fm);color:var(--t3);margin-top:2px;text-transform:uppercase;letter-spacing:0.4px;}
+
+/* Max coach block in done popup */
+.max-block{background:var(--acd2);border:1px solid var(--acb);border-radius:13px;padding:13px;margin-bottom:1.25rem;display:flex;gap:11px;align-items:flex-start;}
+.max-avatar{flex-shrink:0;}
+.max-speech{flex:1;}
+.max-lbl{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
+.max-pulse{width:5px;height:5px;border-radius:50%;background:var(--ac);animation:glow 1.8s infinite;}
+.max-name{font-size:10px;font-family:var(--fm);color:var(--ac);letter-spacing:0.5px;}
+.max-mood{font-size:10px;color:var(--t3);font-family:var(--fm);}
+.max-txt{font-size:13px;color:var(--t2);line-height:1.6;}
+.max-txt b{color:var(--t1);font-weight:500;}
+.max-txt .hl{color:var(--ac);font-weight:500;}
+
+.done-prog{margin-bottom:1.25rem;}
+.dp-meta{display:flex;justify-content:space-between;font-size:10px;font-family:var(--fm);color:var(--t3);margin-bottom:5px;}
+.dp-meta span:first-child{color:var(--ac);}
+.dp-track{height:3px;background:var(--card2);border-radius:999px;}
+.dp-fill{height:100%;background:var(--ac);border-radius:999px;transition:width 0.9s ease;}
+.done-btns{display:flex;gap:8px;}
+.done-btns .btn{flex:1;padding:10px;}
+
+/* Modal */
+.mwrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.mwrap.open{display:flex;}
+.mbox{background:var(--card);border:1px solid var(--b2);border-radius:var(--rl);padding:1.5rem;width:100%;max-width:300px;}
+.mbox h3{font-family:var(--fd);font-size:17px;font-weight:600;margin-bottom:11px;color:var(--t1);}
+.mbox input{width:100%;padding:10px 13px;background:var(--bg2);border:1px solid var(--b2);border-radius:8px;font-size:14px;color:var(--t1);margin-bottom:13px;outline:none;font-family:var(--fb);}
+.mbox input:focus{border-color:var(--acb);}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--card);border:1px solid var(--acb);color:var(--ac);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:420px){
+  .tbig{font-size:48px;}
+  .sval{font-size:18px;}
+  #app{padding:1.25rem 1rem 4rem;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="lang-bar">
+    <div class="lg">🌐</div>
+    <div class="ll">Lang:</div>
+    <div class="ls" id="langScroll"></div>
+  </div>
+  <div class="hdr">
+    <div>
+      <div class="app-title">10,000<span>hrs</span></div>
+      <div class="app-sub" id="appSub">// practice tracker · master anything</div>
+    </div>
+    <div class="streak" id="streakEl">⚪ 0</div>
+  </div>
+  <div class="skill-row" id="skillRow"></div>
+  <div class="stats">
+    <div class="sbox hi"><div class="slbl" id="l_total">TOTAL</div><div class="sval" id="sTotal">—</div><div class="ssub" id="sPct">—</div></div>
+    <div class="sbox"><div class="slbl" id="l_remain">REMAINING</div><div class="sval" id="sRemain">—</div><div class="ssub" id="sEst">—</div></div>
+    <div class="sbox"><div class="slbl" id="l_today">TODAY</div><div class="sval" id="sToday">—</div><div class="ssub" id="sAvg">—</div></div>
+  </div>
+  <div class="prog">
+    <div class="prog-meta"><span id="pPct">0%</span><span id="pEst">—</span></div>
+    <div class="prog-track"><div class="prog-fill" id="pFill" style="width:0.05%"></div></div>
+  </div>
+  <div class="bwrap">
+    <div class="sec-lbl" id="l_badges">Achievements</div>
+    <div class="bscroll" id="badgesEl"></div>
+  </div>
+  <div class="smart-tip" id="smartTip">
+    <div style="font-size:14px;flex-shrink:0;">💡</div>
+    <div class="tip-txt" id="smartTipTxt"></div>
+  </div>
+  <div class="ai-notif" id="aiNotif">
+    <div class="ai-notif-head">
+      <div class="ai-pulse"></div>
+      <div class="ai-notif-title">Max</div>
+      <div class="ai-notif-sub" id="notifSub">just now</div>
+    </div>
+    <div class="ai-notif-body" id="notifBody">—</div>
+    <div class="notif-dismiss"><button onclick="dismissNotif()" id="dismissBtn">dismiss</button></div>
+  </div>
+  <div class="rest-bar" id="restBar">
+    <span class="rest-left" id="restMsg">Rest time</span>
+    <span class="rest-time" id="restTime">05:00</span>
+  </div>
+  <div class="tcrd" id="tcrd">
+    <div class="tbig" id="tbig">00:00</div>
+    <div class="tstat"><span id="tstatLbl" style="color:var(--t3)"></span> <b id="tstat">—</b></div>
+    <div class="pips" id="pips"></div>
+    <div class="bclust" id="bclust">
+      <button class="btn btn-s" id="mainBtn" onclick="handleMain()">—</button>
+    </div>
+  </div>
+  <div class="setwrap">
+    <div class="sethead" onclick="toggleSet()"><span id="l_settings">Timer settings</span><span class="arr" id="sArr">›</span></div>
+    <div class="setbody" id="setbody">
+      <div class="pchips" id="pchips"></div>
+      <div class="srow"><label id="l_prac">Practice</label><input type="range" id="pMin" min="5" max="120" step="5" value="25" oninput="onSet()"><span class="sv" id="pVal">25 min</span></div>
+      <div class="srow"><label id="l_brk">Break</label><input type="range" id="rMin" min="1" max="30" step="1" value="5" oninput="onSet()"><span class="sv" id="rVal">5 min</span></div>
+    </div>
+  </div>
+  <div class="ai-panel">
+    <div class="sec-lbl" id="l_coach">AI Coach</div>
+    <div class="ai-card">
+      <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-nm">Max</div><div class="ai-tag">powered by claude</div></div>
+      <div class="ai-body">
+        <div class="ai-msg" id="aiMsg">—</div>
+        <div class="ai-acts" id="aiActs">
+          <button class="aibtn pri" id="btn_roast" onclick="doAI('roast')">—</button>
+          <button class="aibtn" id="btn_tips" onclick="doAI('tips')">—</button>
+          <button class="aibtn" id="btn_fc" onclick="doAI('forecast')">—</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="logwrap">
+    <div class="sec-lbl" id="l_log">Session log</div>
+    <div id="logEl"></div>
+  </div>
+</div>
+
+<!-- Session done popup -->
+<div class="done-overlay" id="donePop">
+  <div class="done-card">
+    <div class="done-topbar" id="doneTopBar"></div>
+    <div class="done-inner">
+      <div class="done-meta">
+        <div class="done-skill" id="doneSkill">Piano</div>
+        <div class="done-time" id="doneTime">—</div>
+      </div>
+      <div class="done-center">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 84 84">
+            <circle class="rbg" cx="42" cy="42" r="37"/>
+            <circle class="rfg" id="ringFg" cx="42" cy="42" r="37" style="stroke-dashoffset:58"/>
+          </svg>
+          <div class="ring-mid"><div class="ring-n" id="ringN">25</div><div class="ring-u">min</div></div>
+        </div>
+        <div class="done-headline" id="doneHeadline">Session complete</div>
+        <div class="done-sub" id="doneSub">Keep showing up.</div>
+      </div>
+      <div class="done-stats">
+        <div class="dc hi"><div class="dv" id="dst1">—</div><div class="dl" id="dl_today">today</div></div>
+        <div class="dc"><div class="dv" id="dst2">—</div><div class="dl" id="dl_total">total hrs</div></div>
+        <div class="dc"><div class="dv" id="dst3">—</div><div class="dl" id="dl_streak">streak</div></div>
+      </div>
+      <div class="max-block">
+        <div class="max-avatar"><svg id="maxAv" width="52" height="62" viewBox="0 0 92 112" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="max-speech">
+          <div class="max-lbl"><div class="max-pulse"></div><div class="max-name">Max</div><div class="max-mood" id="maxMood">—</div></div>
+          <div class="max-txt" id="maxTxt"><div class="ld"><div class="dots"><span></span><span></span><span></span></div>&nbsp; thinking...</div></div>
+        </div>
+      </div>
+      <div class="done-prog">
+        <div class="dp-meta"><span id="dpPct">—</span><span id="dpLeft">—</span></div>
+        <div class="dp-track"><div class="dp-fill" id="dpFill" style="width:0.01%"></div></div>
+      </div>
+      <div class="done-btns">
+        <button class="btn btn-p" id="doneRest" onclick="closeDone(false)">Take rest</button>
+        <button class="btn btn-s" id="doneSkip" onclick="closeDone(true)">Continue ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mwrap" id="modal">
+  <div class="mbox">
+    <h3 id="m_title">New skill</h3>
+    <input type="text" id="newSkill" maxlength="24">
+    <div class="mbtns">
+      <button class="btn btn-p" onclick="closeModal()" id="m_cancel">Cancel</button>
+      <button class="btn btn-s" onclick="confirmSkill()" id="m_add">Add</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SK='10khrs_final_v1';
+
+// ─── LANGUAGES ───────────────────────────────────────────────
+const LNG={
+  en:{name:'EN 🇬🇧',sub:'// practice tracker · master anything',streak:'day streak',l_total:'TOTAL',l_remain:'REMAINING',l_today:'TODAY',l_badges:'Achievements',l_settings:'Timer settings',l_prac:'Practice',l_brk:'Break',l_coach:'AI Coach',l_log:'Session log',stat_pct:'% to expert',est_y:'~{y}y to expert',avg_n:'{n}min/day',nodata:'no data',logmore:'log more sessions',keep:'keep going',pest:'est. {y}',s_ready:'ready',s_lbl:'Status:',s_prac:'practicing',s_pause:'paused',s_rest:'rest time',btn_start:'Start session',btn_pause:'Pause',btn_resume:'Resume',btn_end:'End session',btn_skip:'Skip rest',rest_msg:'Rest — you earned it.',ai_intro:'Finish a session and Max will coach you automatically.',btn_roast:'Get roasted 🔥',btn_tips:'Practice tips',btn_fc:'Forecast',add_skill:'+ New skill',m_title:'New skill',m_ph:'e.g. Piano, Spanish, Coding...',m_cancel:'Cancel',m_add:'Add',bdone:'✓ done',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Deep work 50+10',p:50,r:10},{l:'Marathon 90+20',p:90,r:20}],mu:'min',hu:'hrs',done_rest:'Take rest',done_skip:'Continue ›',dismiss:'dismiss',notif_sub:'just now',dl_today:'today',dl_total:'total hrs',dl_streak:'streak',
+  smart_tips:["You haven't practiced today — your future self is judging you.","3 days without practice. The gap between you and experts is growing.","Your streak is at risk! A quick session before midnight?","Consistency beats intensity. Even 15 min today counts."],
+  moods:{hype:'· hype mode',roast:'· roast mode',proud:'· proud mode',wow:'· impressed',cel:'· celebrating',night:'· night mode'},
+  auto_msgs:{
+    first:{mood:'hype',msg:'Okay, <b>first session done.</b> Most people quit before they even start — you didn\'t. <span class="hl">Don\'t let this be a one-time thing.</span> Same time tomorrow. No excuses.'},
+    lazy:{mood:'roast',msg:'Oh wow, you crawled back. <b>After {days} days of doing nothing.</b> I\'m glad you\'re here but let\'s be real — <span class="hl">this needs to be a habit, not a random event.</span> Tomorrow. Same time.'},
+    streak:{mood:'proud',msg:'<span class="hl">{streak} days straight.</span> Do you know how rare that is? Most people quit by day 3. You\'re a <b>practitioner</b> now. Keep this energy.'},
+    long:{mood:'wow',msg:'<b>{mins} minutes?!</b> Okay I\'m genuinely impressed. <span class="hl">Take the rest — seriously.</span> Burnout is the only thing that can stop you now.'},
+    milestone:{mood:'cel',msg:'<span class="hl">{hrs} hours!</span> That\'s a real milestone. Not talent, not luck — <b>just you, showing up.</b> Most people never get here.'},
+    default:{mood:'hype',msg:'<b>Session logged.</b> <span class="hl">Every minute compounds.</span> You\'re building something real. See you next session.'},
+  },
+  roast_sys:"You're a brutally honest but secretly supportive coach named Max. Give a short punchy message (2-3 sentences max). Roast them if slacking, hype if crushing it. End with one specific tip. Be like that friend who roasts you but genuinely wants you to win.",
+  tips_sys:"You're Max, an expert skill coach. Give exactly 3 short specific actionable practice tips for the user's skill. Max 1 sentence each. Numbered 1. 2. 3. Be concrete not generic.",
+  fc_sys:"You're Max, a data-driven coach. Based on the user's practice data, give a precise forecast to reach 10,000 hours. Use actual numbers. 2-3 sentences max. Be direct.",
+  roast_q:'Assess my practice data honestly.',tips_q:'Give me specific tips for my skill.',fc_q:'Forecast my path to 10,000 hours.',
+  },
+  zh_tw:{name:'繁中 🇹🇼',sub:'// 練習追蹤器 · 成為任何領域專家',streak:'天連續',l_total:'累積時數',l_remain:'還差',l_today:'今日',l_badges:'成就獎章',l_settings:'計時設定',l_prac:'練習時間',l_brk:'休息時間',l_coach:'AI 教練',l_log:'練習紀錄',stat_pct:'% 進度',est_y:'~{y}年達標',avg_n:'每日均{n}分',nodata:'尚無資料',logmore:'累積更多紀錄',keep:'繼續加油',pest:'預計{y}年達標',s_ready:'準備開始',s_lbl:'狀態：',s_prac:'練習中',s_pause:'已暫停',s_rest:'休息中',btn_start:'開始練習',btn_pause:'暫停',btn_resume:'繼續',btn_end:'結束練習',btn_skip:'跳過休息',rest_msg:'休息一下，你賺到了。',ai_intro:'完成練習後，Max 會自動給你反饋。',btn_roast:'來被嗆 🔥',btn_tips:'練習建議',btn_fc:'達標預測',add_skill:'+ 新增技能',m_title:'新增技能',m_ph:'例如：鋼琴、英文、程式碼...',m_cancel:'取消',m_add:'新增',bdone:'✓ 達成',presets:[{l:'番茄鐘 25+5',p:25,r:5},{l:'深度工作 50+10',p:50,r:10},{l:'長練 90+20',p:90,r:20}],mu:'分鐘',hu:'小時',done_rest:'去休息',done_skip:'繼續 ›',dismiss:'關閉',notif_sub:'剛剛',dl_today:'今日',dl_total:'總時數',dl_streak:'連續天',
+  smart_tips:['你今天還沒練習——你的未來自己正在翻白眼。','已經{days}天沒練習了，你跟專家的差距正在擴大。','連續紀錄快斷掉了！今天隨便練15分鐘也好。','持之以恆勝過一次衝刺，今天就算15分鐘也算數。'],
+  moods:{hype:'· 鼓勵模式',roast:'· 嗆你模式',proud:'· 驕傲模式',wow:'· 佩服模式',cel:'· 慶祝模式',night:'· 深夜模式'},
+  auto_msgs:{
+    first:{mood:'hype',msg:'好，<b>第一次練習完成。</b>大多數人連開始都做不到——你做到了。<span class="hl">但別讓這是唯一一次。</span>明天同一時間，不許藉口。'},
+    lazy:{mood:'roast',msg:'哦，你回來了。<b>{days}天什麼都沒做之後。</b>我很高興你來了，但說真的——<span class="hl">這需要成為習慣，不是偶爾心血來潮。</span>明天，同一時間。'},
+    streak:{mood:'proud',msg:'<span class="hl">連續{streak}天。</span>你知道這有多難得嗎？大多數人撐不過第3天。你現在是真正的<b>練習者</b>了。保持這股勁。'},
+    long:{mood:'wow',msg:'<b>{mins}分鐘？！</b>好吧，我是真的很佩服。<span class="hl">認真去休息——</span>倦怠是現在唯一能阻止你的東西。'},
+    milestone:{mood:'cel',msg:'<span class="hl">{hrs}小時！</span>這是真正的里程碑。不是天分，不是運氣——<b>只是你，一次又一次地出現。</b>大多數人走不到這裡。'},
+    default:{mood:'hype',msg:'<b>練習已記錄。</b><span class="hl">每一分鐘都在累積。</span>你正在建立一件真實的事。下次見。'},
+  },
+  roast_sys:'你是一個名叫Max的嘴砲但真心支持用戶的教練。用繁體中文回覆。給出簡短有力的評語（2-3句）。懶散就嗆，表現好就讚。結尾給一個具體建議。',
+  tips_sys:'你是Max，技能訓練專家。用繁體中文回覆。針對用戶的技能給3個具體可執行的練習建議，每條一句話，編號列出。',
+  fc_sys:'你是Max，數據教練。用繁體中文回覆。根據用戶的練習數據預測達到一萬小時的時程。具體說明數字，2-3句話。',
+  roast_q:'評估一下我的練習狀況。',tips_q:'給我這個技能的練習建議。',fc_q:'預測我達到一萬小時的時程。',
+  },
+  zh_cn:{name:'简中 🇨🇳',sub:'// 练习追踪器 · 成为任何领域专家',streak:'天连续',l_total:'累计时数',l_remain:'还差',l_today:'今日',l_badges:'成就徽章',l_settings:'计时设置',l_prac:'练习时间',l_brk:'休息时间',l_coach:'AI 教练',l_log:'练习记录',stat_pct:'% 进度',est_y:'~{y}年达标',avg_n:'日均{n}分',nodata:'暂无数据',logmore:'累积更多记录',keep:'继续加油',pest:'预计{y}年达标',s_ready:'准备开始',s_lbl:'状态：',s_prac:'练习中',s_pause:'已暂停',s_rest:'休息中',btn_start:'开始练习',btn_pause:'暂停',btn_resume:'继续',btn_end:'结束练习',btn_skip:'跳过休息',rest_msg:'休息一下，你赚到了。',ai_intro:'完成练习后，Max 会自动给你反馈。',btn_roast:'来被怼 🔥',btn_tips:'练习建议',btn_fc:'达标预测',add_skill:'+ 添加技能',m_title:'添加技能',m_ph:'例如：钢琴、英语、编程...',m_cancel:'取消',m_add:'添加',bdone:'✓ 达成',presets:[{l:'番茄钟 25+5',p:25,r:5},{l:'深度工作 50+10',p:50,r:10},{l:'长练 90+20',p:90,r:20}],mu:'分钟',hu:'小时',done_rest:'去休息',done_skip:'继续 ›',dismiss:'关闭',notif_sub:'刚刚',dl_today:'今日',dl_total:'总时数',dl_streak:'连续天',
+  smart_tips:['你今天还没练习——你的未来自己正在皱眉头。','已经{days}天没练习了，你跟专家的差距在扩大。','连续记录快断了！今天随便练15分钟也好。','持之以恒胜过一次冲刺，今天15分钟也算数。'],
+  moods:{hype:'· 鼓励模式',roast:'· 怼你模式',proud:'· 骄傲模式',wow:'· 佩服模式',cel:'· 庆祝模式',night:'· 深夜模式'},
+  auto_msgs:{first:{mood:'hype',msg:'好，<b>第一次练习完成。</b>大多数人连开始都做不到——你做到了。<span class="hl">但别让这是唯一一次。</span>明天同一时间，不许借口。'},lazy:{mood:'roast',msg:'哦，你回来了。<b>{days}天什么都没做之后。</b>我很高兴你来了，但说真的——<span class="hl">这需要成为习惯。</span>明天，同一时间。'},streak:{mood:'proud',msg:'<span class="hl">连续{streak}天。</span>你知道这有多难得吗？大多数人撑不过第3天。你现在是真正的<b>练习者</b>了。'},long:{mood:'wow',msg:'<b>{mins}分钟？！</b>好吧，我是真的很佩服。<span class="hl">认真去休息——</span>倦怠是现在唯一能阻止你的东西。'},milestone:{mood:'cel',msg:'<span class="hl">{hrs}小时！</span>这是真正的里程碑。不是天分，不是运气——<b>只是你，一次又一次地出现。</b>'},default:{mood:'hype',msg:'<b>练习已记录。</b><span class="hl">每一分钟都在累积。</span>你正在建立一件真实的事。下次见。'}},
+  roast_sys:'你是名叫Max的教练，毒舌但真心支持用户。用简体中文回复。2-3句，简短有力。懈怠就怼，表现好就夸。结尾给一个具体建议。',tips_sys:'你是Max，技能训练专家。用简体中文回复。3个具体可执行的练习建议，每条一句话，编号列出。',fc_sys:'你是Max，数据教练。用简体中文回复。根据练习数据预测达到一万小时的时程。具体说明数字，2-3句话。',roast_q:'评估一下我的练习情况。',tips_q:'给我这个技能的练习建议。',fc_q:'预测我达到一万小时的时程。'},
+  ja:{name:'日本語 🇯🇵',sub:'// 練習トラッカー · 何でもマスターしよう',streak:'日連続',l_total:'合計時間',l_remain:'残り',l_today:'今日',l_badges:'実績',l_settings:'タイマー設定',l_prac:'練習時間',l_brk:'休憩時間',l_coach:'AIコーチ',l_log:'練習ログ',stat_pct:'% 達成',est_y:'~{y}年で達成',avg_n:'1日平均{n}分',nodata:'データなし',logmore:'もっと記録して',keep:'続けよう',pest:'{y}年達成予定',s_ready:'準備完了',s_lbl:'状態：',s_prac:'練習中',s_pause:'一時停止',s_rest:'休憩中',btn_start:'練習開始',btn_pause:'一時停止',btn_resume:'再開',btn_end:'練習終了',btn_skip:'休憩スキップ',rest_msg:'休憩時間 — お疲れ様！',ai_intro:'セッション後、Maxが自動でコーチングします。',btn_roast:'ダメ出し 🔥',btn_tips:'練習のコツ',btn_fc:'予測',add_skill:'+ スキル追加',m_title:'新しいスキル',m_ph:'例：ピアノ、英語...',m_cancel:'キャンセル',m_add:'追加',bdone:'✓ 達成',presets:[{l:'ポモドーロ 25+5',p:25,r:5},{l:'深集中 50+10',p:50,r:10},{l:'長練習 90+20',p:90,r:20}],mu:'分',hu:'時間',done_rest:'休憩する',done_skip:'続ける ›',dismiss:'閉じる',notif_sub:'たった今',dl_today:'今日',dl_total:'合計時間',dl_streak:'連続日数',
+  smart_tips:['今日はまだ練習していません。将来の自分が見ています。','3日間練習なし。専門家との差が広がっています。','ストリークが切れそうです！15分だけでも練習を。','継続は力なり。今日15分でも十分です。'],
+  moods:{hype:'· 応援モード',roast:'· ダメ出しモード',proud:'· 誇りモード',wow:'· 感心モード',cel:'· お祝いモード',night:'· 深夜モード'},
+  auto_msgs:{first:{mood:'hype',msg:'よし、<b>初めてのセッション完了。</b>ほとんどの人は始めることさえしない——あなたはした。<span class="hl">これを一度きりにしないで。</span>明日も同じ時間に。'},lazy:{mood:'roast',msg:'戻ってきたね。<b>{days}日間何もしなかった後で。</b><span class="hl">これは習慣にしないといけない。</span>明日、同じ時間に。'},streak:{mood:'proud',msg:'<span class="hl">{streak}日連続。</span>これがどれほど珍しいか分かる？ほとんどの人は3日で辞める。あなたは本物の<b>練習者</b>だ。'},long:{mood:'wow',msg:'<b>{mins}分？！</b>正直、すごく感心した。<span class="hl">休憩を取って——</span>燃え尽きだけが今のあなたを止められる。'},milestone:{mood:'cel',msg:'<span class="hl">{hrs}時間！</span>本当のマイルストーン。才能でも運でもない——<b>ただあなたが、何度も何度も現れ続けた結果。</b>'},default:{mood:'hype',msg:'<b>セッション記録済み。</b><span class="hl">一分一分が積み重なっている。</span>次のセッションで会おう。'}},
+  roast_sys:'あなたはMaxという名の厳しいが応援するコーチです。日本語で回答。2-3文、短くパンチを効かせて。サボっていたら叱り、頑張っていたら褒める。最後に具体的なアドバイスを1つ。',tips_sys:'あなたはMax、スキル訓練の専門家です。日本語で回答。3つの具体的な練習のコツを各1文で番号付きリストで。',fc_sys:'あなたはMax、データコーチです。日本語で回答。練習データを基に1万時間達成の予測を2-3文で具体的な数字を使って。',roast_q:'私の練習状況を評価して。',tips_q:'このスキルの練習のコツを教えて。',fc_q:'1万時間達成の予測を教えて。'},
+  ko:{name:'한국어 🇰🇷',sub:'// 연습 트래커 · 무엇이든 마스터하기',streak:'일 연속',l_total:'총 시간',l_remain:'남은',l_today:'오늘',l_badges:'업적',l_settings:'타이머 설정',l_prac:'연습 시간',l_brk:'휴식 시간',l_coach:'AI 코치',l_log:'세션 로그',stat_pct:'% 달성',est_y:'~{y}년 후 달성',avg_n:'하루 평균{n}분',nodata:'데이터 없음',logmore:'더 기록하세요',keep:'계속 해봐요',pest:'{y}년 달성 예정',s_ready:'준비 완료',s_lbl:'상태:',s_prac:'연습 중',s_pause:'일시 정지',s_rest:'휴식 중',btn_start:'세션 시작',btn_pause:'일시 정지',btn_resume:'재개',btn_end:'세션 종료',btn_skip:'휴식 건너뛰기',rest_msg:'휴식 시간 — 잘 했어요!',ai_intro:'세션 후 Max가 자동으로 코칭해드립니다.',btn_roast:'혼내줘 🔥',btn_tips:'연습 팁',btn_fc:'예측',add_skill:'+ 스킬 추가',m_title:'새 스킬',m_ph:'예: 피아노, 영어...',m_cancel:'취소',m_add:'추가',bdone:'✓ 달성',presets:[{l:'포모도로 25+5',p:25,r:5},{l:'딥워크 50+10',p:50,r:10},{l:'장기 90+20',p:90,r:20}],mu:'분',hu:'시간',done_rest:'휴식하기',done_skip:'계속 ›',dismiss:'닫기',notif_sub:'방금',dl_today:'오늘',dl_total:'총 시간',dl_streak:'연속 일수',
+  smart_tips:['오늘 아직 연습 안 했어요. 미래의 당신이 지켜보고 있어요.','3일째 연습 없음. 전문가와의 격차가 벌어지고 있어요.','연속 기록이 끊길 위기! 오늘 15분만이라도요.','꾸준함이 강도를 이깁니다. 오늘 15분도 충분해요.'],
+  moods:{hype:'· 응원 모드',roast:'· 혼내기 모드',proud:'· 자랑스러운 모드',wow:'· 감탄 모드',cel:'· 축하 모드',night:'· 심야 모드'},
+  auto_msgs:{first:{mood:'hype',msg:'좋아, <b>첫 번째 세션 완료.</b> 대부분의 사람들은 시작조차 못 해——당신은 했어요. <span class="hl">이게 단 한 번으로 끝나지 않도록 해요.</span> 내일 같은 시간에.'},lazy:{mood:'roast',msg:'돌아왔네요. <b>{days}일 동안 아무것도 안 한 후에.</b> 와줘서 기쁘지만——<span class="hl">이건 습관이 돼야 해요.</span> 내일, 같은 시간에.'},streak:{mood:'proud',msg:'<span class="hl">{streak}일 연속.</span> 이게 얼마나 드문 일인지 알아요? 대부분은 3일에 포기해요. 당신은 이제 진짜 <b>실천가</b>예요.'},long:{mood:'wow',msg:'<b>{mins}분?!</b> 솔직히 감탄했어요. <span class="hl">휴식 꼭 취하세요——</span> 번아웃만이 지금 당신을 막을 수 있어요.'},milestone:{mood:'cel',msg:'<span class="hl">{hrs}시간!</span> 진짜 이정표예요. 재능도 운도 아닌——<b>그저 당신이, 계속 나타난 결과예요.</b>'},default:{mood:'hype',msg:'<b>세션 기록 완료.</b> <span class="hl">매 분이 쌓이고 있어요.</span> 다음 세션에서 봐요.'}},
+  roast_sys:'당신은 Max라는 이름의 직설적이지만 응원하는 코치입니다. 한국어로 답변. 2-3문장으로 짧고 강렬하게. 게으르면 혼내고 잘하면 칭찬. 마지막에 구체적인 팁 하나.',tips_sys:'당신은 Max, 스킬 트레이닝 전문가입니다. 한국어로 답변. 3개의 구체적인 연습 팁을 번호 목록으로 각 1문장씩.',fc_sys:'당신은 Max, 데이터 코치입니다. 한국어로 답변. 1만 시간 달성 예측을 구체적인 숫자로 2-3문장으로.',roast_q:'내 연습 상황 평가해줘.',tips_q:'이 스킬 연습 팁 알려줘.',fc_q:'1만 시간 달성 예측 알려줘.'},
+  es:{name:'ES 🇪🇸',sub:'// rastreador · domina cualquier habilidad',streak:'días seguidos',l_total:'TOTAL',l_remain:'RESTANTES',l_today:'HOY',l_badges:'Logros',l_settings:'Configuración',l_prac:'Práctica',l_brk:'Descanso',l_coach:'Entrenador Max',l_log:'Registro',stat_pct:'% experto',est_y:'~{y}a para experto',avg_n:'{n}min/día',nodata:'sin datos',logmore:'registra más',keep:'sigue adelante',pest:'est. {y}',s_ready:'listo',s_lbl:'Estado:',s_prac:'practicando',s_pause:'pausado',s_rest:'descansando',btn_start:'Iniciar',btn_pause:'Pausar',btn_resume:'Reanudar',btn_end:'Terminar',btn_skip:'Saltar',rest_msg:'Descansa — te lo ganaste.',ai_intro:'Al terminar, Max te da feedback automático.',btn_roast:'Regáñame 🔥',btn_tips:'Consejos',btn_fc:'Pronóstico',add_skill:'+ Nueva habilidad',m_title:'Nueva habilidad',m_ph:'ej. Piano, inglés...',m_cancel:'Cancelar',m_add:'Agregar',bdone:'✓ logrado',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Trabajo profundo 50+10',p:50,r:10},{l:'Maratón 90+20',p:90,r:20}],mu:'min',hu:'hrs',done_rest:'Descansar',done_skip:'Continuar ›',dismiss:'cerrar',notif_sub:'ahora mismo',dl_today:'hoy',dl_total:'total hrs',dl_streak:'racha',
+  smart_tips:['No has practicado hoy. Tu yo futuro te está juzgando.','3 días sin práctica. La brecha con los expertos crece.','¡Tu racha está en riesgo! ¿15 minutos hoy?','La constancia vence. 15 min hoy bastan.'],
+  moods:{hype:'· modo hype',roast:'· modo regaño',proud:'· modo orgulloso',wow:'· modo impresionado',cel:'· celebrando',night:'· modo noche'},
+  auto_msgs:{first:{mood:'hype',msg:'Bien, <b>primer sesión completada.</b> La mayoría ni empieza——tú sí. <span class="hl">No dejes que esto sea un evento único.</span> Mañana, misma hora.'},lazy:{mood:'roast',msg:'Volviste. <b>Después de {days} días sin hacer nada.</b> Me alegra——pero <span class="hl">esto tiene que ser un hábito.</span> Mañana, misma hora.'},streak:{mood:'proud',msg:'<span class="hl">{streak} días seguidos.</span> ¿Sabes lo raro que es eso? La mayoría abandona el día 3. Ya eres un <b>practicante</b>.'},long:{mood:'wow',msg:'<b>¿{mins} minutos?!</b> Genuinamente impresionado. <span class="hl">Toma el descanso——</span> el agotamiento es lo único que puede detenerte ahora.'},milestone:{mood:'cel',msg:'<span class="hl">¡{hrs} horas!</span> Un hito real. No talento, no suerte——<b>solo tú, apareciendo una y otra vez.</b>'},default:{mood:'hype',msg:'<b>Sesión registrada.</b> <span class="hl">Cada minuto se acumula.</span> Nos vemos en la próxima.'}},
+  roast_sys:'Eres Max, un entrenador brutalmente honesto pero solidario. Responde en español. 2-3 oraciones directas. Regaña si flojea, felicita si va bien. Termina con un consejo concreto.',tips_sys:'Eres Max, experto entrenador. Responde en español. 3 consejos específicos, 1 oración cada uno, lista numerada.',fc_sys:'Eres Max, coach de datos. Responde en español. Pronóstico a 10,000 horas con números específicos. 2-3 oraciones.',roast_q:'Evalúa mis datos.',tips_q:'Dame consejos para mi habilidad.',fc_q:'Pronostica mi camino a 10,000 horas.'},
+  pt:{name:'PT 🇧🇷',sub:'// rastreador · domine qualquer habilidade',streak:'dias seguidos',l_total:'TOTAL',l_remain:'RESTANTES',l_today:'HOJE',l_badges:'Conquistas',l_settings:'Configuração',l_prac:'Prática',l_brk:'Pausa',l_coach:'Treinador Max',l_log:'Registro',stat_pct:'% especialista',est_y:'~{y}a para especialista',avg_n:'{n}min/dia',nodata:'sem dados',logmore:'registre mais',keep:'continue assim',pest:'est. {y}',s_ready:'pronto',s_lbl:'Status:',s_prac:'praticando',s_pause:'pausado',s_rest:'descansando',btn_start:'Iniciar',btn_pause:'Pausar',btn_resume:'Retomar',btn_end:'Encerrar',btn_skip:'Pular',rest_msg:'Descanse — você merece.',ai_intro:'Ao terminar, Max dá feedback automático.',btn_roast:'Me critica 🔥',btn_tips:'Dicas',btn_fc:'Previsão',add_skill:'+ Nova habilidade',m_title:'Nova habilidade',m_ph:'ex. Piano, inglês...',m_cancel:'Cancelar',m_add:'Adicionar',bdone:'✓ conquistado',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Foco profundo 50+10',p:50,r:10},{l:'Maratona 90+20',p:90,r:20}],mu:'min',hu:'hrs',done_rest:'Descansar',done_skip:'Continuar ›',dismiss:'fechar',notif_sub:'agora mesmo',dl_today:'hoje',dl_total:'total hrs',dl_streak:'sequência',
+  smart_tips:['Você não praticou hoje. Seu eu futuro está te julgando.','3 dias sem prática. A lacuna com especialistas cresce.','Sua sequência está em risco! 15 minutos hoje?','Consistência vence intensidade. 15 min hoje bastam.'],
+  moods:{hype:'· modo hype',roast:'· modo crítica',proud:'· modo orgulho',wow:'· modo impressionado',cel:'· celebrando',night:'· modo noturno'},
+  auto_msgs:{first:{mood:'hype',msg:'Bem, <b>primeira sessão concluída.</b> A maioria nem começa——você começou. <span class="hl">Não deixe isso ser um evento único.</span> Amanhã, mesmo horário.'},lazy:{mood:'roast',msg:'Voltou. <b>Depois de {days} dias sem nada.</b> Fico feliz——mas <span class="hl">isso precisa virar hábito.</span> Amanhã, mesmo horário.'},streak:{mood:'proud',msg:'<span class="hl">{streak} dias seguidos.</span> Sabe o quão raro isso é? A maioria desiste no dia 3. Você agora é um <b>praticante</b> de verdade.'},long:{mood:'wow',msg:'<b>{mins} minutos?!</b> Genuinamente impressionado. <span class="hl">Descanse de verdade——</span> o burnout é a única coisa que pode te parar agora.'},milestone:{mood:'cel',msg:'<span class="hl">{hrs} horas!</span> Um marco real. Não talento, não sorte——<b>só você, aparecendo de novo e de novo.</b>'},default:{mood:'hype',msg:'<b>Sessão registrada.</b> <span class="hl">Cada minuto se acumula.</span> Nos vemos na próxima.'}},
+  roast_sys:'Você é Max, um treinador honesto e solidário. Responda em português. 2-3 frases diretas. Critique se preguiçoso, elogie se indo bem. Termine com uma dica concreta.',tips_sys:'Você é Max, especialista em treinamento. Responda em português. 3 dicas específicas, 1 frase cada, lista numerada.',fc_sys:'Você é Max, coach de dados. Responda em português. Previsão para 10.000 horas com números específicos. 2-3 frases.',roast_q:'Avalie meus dados.',tips_q:'Dicas para minha habilidade.',fc_q:'Previsão para 10.000 horas.'},
+  fr:{name:'FR 🇫🇷',sub:'// suivi · maîtrisez tout',streak:'jours consécutifs',l_total:'TOTAL',l_remain:'RESTANTES',l_today:"AUJOURD'HUI",l_badges:'Succès',l_settings:'Réglages',l_prac:'Pratique',l_brk:'Pause',l_coach:'Coach Max',l_log:'Journal',stat_pct:'% expert',est_y:'~{y}a pour expert',avg_n:'{n}min/jour',nodata:'pas de données',logmore:'enregistrez plus',keep:'continuez',pest:'est. {y}',s_ready:'prêt',s_lbl:'Statut :',s_prac:'pratique',s_pause:'pause',s_rest:'repos',btn_start:'Démarrer',btn_pause:'Pause',btn_resume:'Reprendre',btn_end:'Terminer',btn_skip:'Passer',rest_msg:'Repos — vous le méritez.',ai_intro:'Après chaque session, Max vous coache automatiquement.',btn_roast:'Critique-moi 🔥',btn_tips:'Conseils',btn_fc:'Prévision',add_skill:'+ Nouvelle compétence',m_title:'Nouvelle compétence',m_ph:'ex. Piano, anglais...',m_cancel:'Annuler',m_add:'Ajouter',bdone:'✓ accompli',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Travail profond 50+10',p:50,r:10},{l:'Marathon 90+20',p:90,r:20}],mu:'min',hu:'hrs',done_rest:'Se reposer',done_skip:'Continuer ›',dismiss:'fermer',notif_sub:"à l'instant",dl_today:"aujourd'hui",dl_total:'total hrs',dl_streak:'série',
+  smart_tips:["Vous n'avez pas pratiqué aujourd'hui. Votre futur vous vous regarde.",'3 jours sans pratique. L\'écart avec les experts se creuse.','Votre série est en danger ! 15 minutes aujourd\'hui ?','La constance bat l\'intensité. 15 min aujourd\'hui suffisent.'],
+  moods:{hype:'· mode hype',roast:'· mode critique',proud:'· mode fierté',wow:'· mode impressionné',cel:'· célébration',night:'· mode nuit'},
+  auto_msgs:{first:{mood:'hype',msg:'Bien, <b>première session terminée.</b> La plupart ne commencent même pas——vous si. <span class="hl">Ne faites pas de ça un événement unique.</span> Demain, même heure.'},lazy:{mood:'roast',msg:'Vous êtes revenu. <b>Après {days} jours sans rien.</b> Content de vous voir——mais <span class="hl">ça doit devenir une habitude.</span> Demain, même heure.'},streak:{mood:'proud',msg:'<span class="hl">{streak} jours consécutifs.</span> Vous savez à quel point c\'est rare ? La plupart abandonnent au 3e jour. Vous êtes maintenant un <b>praticien</b>.'},long:{mood:'wow',msg:'<b>{mins} minutes ?!</b> Franchement impressionné. <span class="hl">Prenez le repos——</span> l\'épuisement est la seule chose qui peut vous arrêter maintenant.'},milestone:{mood:'cel',msg:'<span class="hl">{hrs} heures !</span> Un vrai jalon. Pas du talent, pas de la chance——<b>juste vous, qui revenez encore et encore.</b>'},default:{mood:'hype',msg:'<b>Session enregistrée.</b> <span class="hl">Chaque minute s\'accumule.</span> À la prochaine session.'}},
+  roast_sys:"Vous êtes Max, un coach honnête et solidaire. Répondez en français. 2-3 phrases percutantes. Critiquez si paresseux, félicitez si ça va. Terminez avec un conseil concret.",tips_sys:"Vous êtes Max, expert en formation. Répondez en français. 3 conseils spécifiques, 1 phrase chacun, liste numérotée.",fc_sys:"Vous êtes Max, coach de données. Répondez en français. Prévision vers 10 000 heures avec chiffres. 2-3 phrases.",roast_q:'Évaluez mes données.',tips_q:'Donnez des conseils pour ma compétence.',fc_q:'Prévision vers 10 000 heures.'},
+  de:{name:'DE 🇩🇪',sub:'// Übungs-Tracker · Meistere alles',streak:'Tage in Folge',l_total:'GESAMT',l_remain:'VERBLEIBEND',l_today:'HEUTE',l_badges:'Erfolge',l_settings:'Einstellungen',l_prac:'Übungszeit',l_brk:'Pause',l_coach:'Coach Max',l_log:'Protokoll',stat_pct:'% zum Experten',est_y:'~{y}J bis Experte',avg_n:'{n}min/Tag',nodata:'keine Daten',logmore:'mehr aufzeichnen',keep:'weiter so',pest:'ca. {y}',s_ready:'bereit',s_lbl:'Status:',s_prac:'üben',s_pause:'pausiert',s_rest:'Pause',btn_start:'Starten',btn_pause:'Pause',btn_resume:'Fortsetzen',btn_end:'Beenden',btn_skip:'Überspringen',rest_msg:'Pause verdient!',ai_intro:'Nach jeder Session coacht Max automatisch.',btn_roast:'Kritisier mich 🔥',btn_tips:'Tipps',btn_fc:'Prognose',add_skill:'+ Neue Fähigkeit',m_title:'Neue Fähigkeit',m_ph:'z.B. Klavier, Englisch...',m_cancel:'Abbrechen',m_add:'Hinzufügen',bdone:'✓ erreicht',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Tiefarbeit 50+10',p:50,r:10},{l:'Marathon 90+20',p:90,r:20}],mu:'Min',hu:'Std',done_rest:'Pause machen',done_skip:'Weiter ›',dismiss:'schließen',notif_sub:'gerade eben',dl_today:'heute',dl_total:'Gesamt Std',dl_streak:'Serie',
+  smart_tips:['Du hast heute noch nicht geübt. Dein zukünftiges Ich schaut zu.','3 Tage ohne Übung. Der Abstand zu Experten wächst.','Deine Serie ist in Gefahr! 15 Minuten heute?','Konstanz schlägt Intensität. 15 min heute reichen.'],
+  moods:{hype:'· Hype-Modus',roast:'· Kritik-Modus',proud:'· Stolz-Modus',wow:'· Beeindruckt',cel:'· Feier-Modus',night:'· Nacht-Modus'},
+  auto_msgs:{first:{mood:'hype',msg:'Gut, <b>erste Session abgeschlossen.</b> Die meisten fangen gar nicht erst an——du schon. <span class="hl">Lass das kein Einzelfall sein.</span> Morgen, gleiche Zeit.'},lazy:{mood:'roast',msg:'Zurück. <b>Nach {days} Tagen ohne nichts.</b> Gut, dass du da bist——aber <span class="hl">das muss eine Gewohnheit werden.</span> Morgen, gleiche Zeit.'},streak:{mood:'proud',msg:'<span class="hl">{streak} Tage in Folge.</span> Weißt du, wie selten das ist? Die meisten geben am 3. Tag auf. Du bist jetzt ein echter <b>Praktiker</b>.'},long:{mood:'wow',msg:'<b>{mins} Minuten?!</b> Ehrlich gesagt beeindruckt. <span class="hl">Nimm die Pause——</span> Burnout ist das Einzige, was dich jetzt stoppen kann.'},milestone:{mood:'cel',msg:'<span class="hl">{hrs} Stunden!</span> Ein echter Meilenstein. Kein Talent, kein Glück——<b>nur du, der immer wieder auftaucht.</b>'},default:{mood:'hype',msg:'<b>Session aufgezeichnet.</b> <span class="hl">Jede Minute summiert sich.</span> Bis zur nächsten Session.'}},
+  roast_sys:'Du bist Max, ein ehrlicher aber unterstützender Coach. Antworte auf Deutsch. 2-3 prägnante Sätze. Kritisiere bei Faulheit, lobe bei Fortschritt. Beende mit einem konkreten Tipp.',tips_sys:'Du bist Max, Trainingsexperte. Antworte auf Deutsch. 3 spezifische Tipps, max 1 Satz je, nummerierte Liste.',fc_sys:'Du bist Max, Daten-Coach. Antworte auf Deutsch. Prognose zu 10.000 Stunden mit konkreten Zahlen. 2-3 Sätze.',roast_q:'Bewerte meine Daten.',tips_q:'Tipps für meine Fähigkeit.',fc_q:'Prognose zu 10.000 Stunden.'},
+  id:{name:'ID 🇮🇩',sub:'// pelacak latihan · kuasai apapun',streak:'hari berturut',l_total:'TOTAL',l_remain:'TERSISA',l_today:'HARI INI',l_badges:'Pencapaian',l_settings:'Pengaturan',l_prac:'Latihan',l_brk:'Istirahat',l_coach:'Pelatih Max',l_log:'Log sesi',stat_pct:'% menuju ahli',est_y:'~{y}th menuju ahli',avg_n:'{n}mnt/hari',nodata:'belum ada data',logmore:'catat lebih banyak',keep:'terus semangat',pest:'est. {y}',s_ready:'siap',s_lbl:'Status:',s_prac:'latihan',s_pause:'dijeda',s_rest:'istirahat',btn_start:'Mulai sesi',btn_pause:'Jeda',btn_resume:'Lanjutkan',btn_end:'Akhiri',btn_skip:'Lewati',rest_msg:'Istirahat — kamu pantas!',ai_intro:'Setelah sesi, Max otomatis kasih feedback.',btn_roast:'Kritik aku 🔥',btn_tips:'Tips',btn_fc:'Prediksi',add_skill:'+ Tambah skill',m_title:'Skill baru',m_ph:'mis. Piano, Inggris...',m_cancel:'Batal',m_add:'Tambah',bdone:'✓ tercapai',presets:[{l:'Pomodoro 25+5',p:25,r:5},{l:'Deep work 50+10',p:50,r:10},{l:'Maraton 90+20',p:90,r:20}],mu:'mnt',hu:'jam',done_rest:'Istirahat',done_skip:'Lanjutkan ›',dismiss:'tutup',notif_sub:'baru saja',dl_today:'hari ini',dl_total:'total jam',dl_streak:'hari berturut',
+  smart_tips:['Belum latihan hari ini. Diri masa depanmu sedang memandang.','3 hari tanpa latihan. Jarakmu dengan ahli semakin jauh.','Streak hampir putus! 15 menit saja hari ini?','Konsisten mengalahkan intensitas. 15 menit hari ini cukup.'],
+  moods:{hype:'· mode hype',roast:'· mode kritik',proud:'· mode bangga',wow:'· mode terkagum',cel:'· perayaan',night:'· mode malam'},
+  auto_msgs:{first:{mood:'hype',msg:'Oke, <b>sesi pertama selesai.</b> Kebanyakan orang bahkan tidak memulai——kamu sudah. <span class="hl">Jangan biarkan ini jadi satu-satunya.</span> Besok, jam yang sama.'},lazy:{mood:'roast',msg:'Kamu kembali. <b>Setelah {days} hari tanpa apa-apa.</b> Senang kamu di sini——tapi <span class="hl">ini harus jadi kebiasaan.</span> Besok, jam yang sama.'},streak:{mood:'proud',msg:'<span class="hl">{streak} hari berturut.</span> Tahu seberapa langkanya itu? Kebanyakan orang menyerah di hari ke-3. Kamu sekarang seorang <b>praktisi</b> sejati.'},long:{mood:'wow',msg:'<b>{mins} menit?!</b> Jujur, saya terkesan. <span class="hl">Ambil istirahatnya——</span> burnout adalah satu-satunya yang bisa menghentikanmu sekarang.'},milestone:{mood:'cel',msg:'<span class="hl">{hrs} jam!</span> Ini pencapaian nyata. Bukan bakat, bukan keberuntungan——<b>hanya kamu, yang terus hadir.</b>'},default:{mood:'hype',msg:'<b>Sesi tercatat.</b> <span class="hl">Setiap menit bertambah.</span> Sampai sesi berikutnya.'}},
+  roast_sys:'Kamu adalah Max, pelatih yang jujur namun mendukung. Jawab dalam bahasa Indonesia. 2-3 kalimat singkat dan tajam. Kritik kalau malas, puji kalau bagus. Akhiri dengan satu saran konkret.',tips_sys:'Kamu adalah Max, ahli pelatihan skill. Jawab dalam bahasa Indonesia. 3 tips spesifik, maks 1 kalimat per tips, daftar bernomor.',fc_sys:'Kamu adalah Max, pelatih data. Jawab dalam bahasa Indonesia. Prediksi ke 10.000 jam dengan angka spesifik. 2-3 kalimat.',roast_q:'Nilai data latihanku.',tips_q:'Tips untuk skillku.',fc_q:'Prediksi ke 10.000 jam.'},
+};
+
+// ─── MAX SVG ───────────────────────────────────────────────────
+const MCOLORS={hype:'#e8ff47',roast:'#ff4d6d',proud:'#e8ff47',wow:'#4d9fff',cel:'#ffd166',night:'#9b8ff5'};
+function maxSVG(mood){
+  const c=MCOLORS[mood]||'#e8ff47';
+  const base=`<circle cx="46" cy="34" r="21" fill="#1e1e2a" stroke="${c}" stroke-width="1.5"/>
+<path d="M30 21 Q46 14 62 21 Q64 29 62 34 Q60 21 46 17 Q32 21 30 34 Q28 29 30 21Z" fill="#16161f" stroke="${c}" stroke-width="1.1" stroke-linejoin="round"/>
+<path d="M32 15 Q46 9 60 15" stroke="${c}" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+<line x1="35" y1="13" x2="32" y2="6" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="46" y1="11" x2="46" y2="4" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="57" y1="13" x2="60" y2="6" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>
+<circle cx="32" cy="5" r="1.7" fill="${c}" opacity="0.65"/>
+<circle cx="46" cy="3" r="1.7" fill="${c}" opacity="0.65"/>
+<circle cx="60" cy="5" r="1.7" fill="${c}" opacity="0.65"/>
+<line x1="64" y1="32" x2="70" y2="30" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>
+<circle cx="71" cy="29.5" r="2.2" fill="none" stroke="${c}" stroke-width="1.1"/>
+<circle cx="71" cy="29.5" r="0.8" fill="${c}" opacity="0.5"/>
+<path d="M25 28 Q21 22 25 18" stroke="${c}" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+<path d="M67 28 Q71 22 67 18" stroke="${c}" stroke-width="1.1" fill="none" stroke-linecap="round"/>`;
+  const eyes={
+    hype:`<ellipse cx="37" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><ellipse cx="55" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><circle cx="37" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="55" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="37.7" cy="30.3" r="0.65" fill="${c}"/><circle cx="55.7" cy="30.3" r="0.65" fill="${c}"/><path d="M33 39 Q46 48 59 39" stroke="${c}" stroke-width="2.1" fill="none" stroke-linecap="round"/><circle cx="34" cy="39.5" r="1.7" fill="${c}" opacity="0.5"/><circle cx="58" cy="39.5" r="1.7" fill="${c}" opacity="0.5"/>`,
+    roast:`<ellipse cx="37" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><ellipse cx="55" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><circle cx="37" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="55" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="37.7" cy="30.3" r="0.65" fill="${c}"/><circle cx="55.7" cy="30.3" r="0.65" fill="${c}"/><line x1="34" y1="27" x2="38" y2="25.5" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="52" y1="25.5" x2="56" y2="27" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M38 41 Q46 38 54 41" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`,
+    proud:`<ellipse cx="37" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><ellipse cx="55" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.85"/><circle cx="37" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="55" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="37.7" cy="30.3" r="0.65" fill="${c}"/><circle cx="55.7" cy="30.3" r="0.65" fill="${c}"/><path d="M32 39 Q46 51 60 39" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="33" cy="40" r="1.9" fill="${c}" opacity="0.6"/><circle cx="59" cy="40" r="1.9" fill="${c}" opacity="0.6"/>`,
+    wow:`<ellipse cx="37" cy="30" rx="4.5" ry="4" fill="${c}" opacity="0.85"/><ellipse cx="55" cy="30" rx="4.5" ry="4" fill="${c}" opacity="0.85"/><circle cx="37" cy="30" r="2.1" fill="#0a0a0f"/><circle cx="55" cy="30" r="2.1" fill="#0a0a0f"/><circle cx="38" cy="29" r="0.85" fill="${c}"/><circle cx="56" cy="29" r="0.85" fill="${c}"/><ellipse cx="46" cy="41" rx="4.5" ry="3" fill="${c}" opacity="0.8"/><ellipse cx="46" cy="41" rx="2.8" ry="1.8" fill="#0a0a0f"/>`,
+    cel:`<ellipse cx="37" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.9"/><ellipse cx="55" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.9"/><circle cx="37" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="55" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="37.7" cy="30.3" r="0.65" fill="${c}"/><circle cx="55.7" cy="30.3" r="0.65" fill="${c}"/><path d="M32 39 Q46 53 60 39" stroke="${c}" stroke-width="2.8" fill="none" stroke-linecap="round"/><circle cx="33" cy="40" r="2.3" fill="${c}" opacity="0.7"/><circle cx="59" cy="40" r="2.3" fill="${c}" opacity="0.7"/>`,
+    night:`<ellipse cx="37" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.65"/><ellipse cx="55" cy="31" rx="3.8" ry="3.2" fill="${c}" opacity="0.65"/><circle cx="37" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="55" cy="31" r="1.7" fill="#0a0a0f"/><circle cx="37.7" cy="30.3" r="0.65" fill="${c}"/><circle cx="55.7" cy="30.3" r="0.65" fill="${c}"/><path d="M39 40 Q46 44 53 40" stroke="${c}" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M8 13 Q13 19 8 25 Q13 19 19 19 Q13 13 8 13Z" fill="${c}" opacity="0.4"/>`,
+  };
+  const bodies={
+    hype:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><path d="M32 61 Q46 57 60 61" stroke="${c}" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.4"/><line x1="35" y1="67" x2="33" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="59" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="33" y1="80" x2="23" y2="86" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="59" y1="80" x2="69" y2="74" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M69 74 Q77 70 73 64 Q69 60 65 63" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+    roast:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><line x1="35" y1="67" x2="33" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="59" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="33" y1="80" x2="24" y2="88" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="59" y1="80" x2="69" y2="74" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M69 74 Q77 70 73 64 Q69 60 65 63" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+    proud:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><line x1="35" y1="67" x2="25" y2="77" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="67" y2="77" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="25" y1="77" x2="17" y2="69" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="67" y1="77" x2="75" y2="69" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M75 69 Q82 63 78 57 Q74 53 70 56" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 69 Q10 63 14 57 Q18 53 22 56" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+    wow:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><line x1="35" y1="67" x2="27" y2="79" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="59" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="27" y1="79" x2="19" y2="71" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="59" y1="80" x2="71" y2="76" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M71 76 Q79 70 75 64 Q71 60 67 63" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+    cel:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><line x1="35" y1="67" x2="23" y2="73" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="69" y2="73" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="23" y1="73" x2="13" y2="61" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="69" y1="73" x2="79" y2="61" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="59" r="3.2" fill="${c}" opacity="0.55"/><circle cx="80" cy="59" r="3.2" fill="${c}" opacity="0.55"/><circle cx="7" cy="51" r="1.8" fill="${c}" opacity="0.3"/><circle cx="85" cy="51" r="1.8" fill="${c}" opacity="0.3"/>`,
+    night:`<rect x="29" y="55" width="34" height="12" rx="6" fill="#1e1e2a" stroke="${c}" stroke-width="1.1"/><line x1="35" y1="67" x2="33" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="57" y1="67" x2="59" y2="80" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="33" y1="80" x2="25" y2="88" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><line x1="59" y1="80" x2="69" y2="74" stroke="${c}" stroke-width="1.4" stroke-linecap="round"/><path d="M69 74 Q77 70 73 64 Q69 60 65 63" stroke="${c}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+  };
+  return base+(eyes[mood]||eyes.hype)+(bodies[mood]||bodies.hype)+`<text x="46" y="108" text-anchor="middle" font-size="7.5" fill="${c}" opacity="0.35" font-family="DM Mono,monospace" letter-spacing="1">MAX</text>`;
+}
+
+// ─── MILESTONES ────────────────────────────────────────────────
+const MS=[{h:100,icon:'🥉',lbl:'100 hrs'},{h:500,icon:'🥈',lbl:'500 hrs'},{h:1000,icon:'🥇',lbl:'1K hrs'},{h:2000,icon:'🏅',lbl:'2K hrs'},{h:5000,icon:'🏆',lbl:'5K hrs'},{h:8000,icon:'💎',lbl:'8K hrs'},{h:10000,icon:'⭐',lbl:'10K hrs'}];
+
+// ─── STATE ─────────────────────────────────────────────────────
+let S={skills:['Piano'],active:'Piano',records:[],settings:{p:25,r:5},badges:{},lang:'en'};
+let T={running:false,mode:'idle',el:0,iv:null,sess:0,rel:0,riv:null};
+let alertIv=null;
+
+function L(){return LNG[S.lang]||LNG.en;}
+function load(){try{const d=localStorage.getItem(SK);if(d)S={...S,...JSON.parse(d)};}catch(e){}applyLang();render();checkSmartTip();}
+function save(){try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){}}
+
+function applyLang(){
+  const l=L();
+  document.getElementById('appSub').textContent=l.sub;
+  ['l_total','l_remain','l_today','l_badges','l_settings','l_prac','l_brk','l_coach','l_log'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=l[id];});
+  document.getElementById('restMsg').textContent=l.rest_msg;
+  document.getElementById('aiMsg').innerHTML=l.ai_intro;
+  document.getElementById('btn_roast').textContent=l.btn_roast;
+  document.getElementById('btn_tips').textContent=l.btn_tips;
+  document.getElementById('btn_fc').textContent=l.btn_fc;
+  document.getElementById('m_title').textContent=l.m_title;
+  document.getElementById('newSkill').placeholder=l.m_ph;
+  document.getElementById('m_cancel').textContent=l.m_cancel;
+  document.getElementById('m_add').textContent=l.m_add;
+  document.getElementById('tstatLbl').textContent=l.s_lbl;
+  document.getElementById('dismissBtn').textContent=l.dismiss;
+  document.getElementById('notifSub').textContent=l.notif_sub;
+  document.getElementById('doneRest').textContent=l.done_rest;
+  document.getElementById('doneSkip').textContent=l.done_skip;
+  document.getElementById('dl_today').textContent=l.dl_today;
+  document.getElementById('dl_total').textContent=l.dl_total;
+  document.getElementById('dl_streak').textContent=l.dl_streak;
+  const mb=document.getElementById('mainBtn');
+  if(mb)mb.textContent=T.running?(T.mode==='practice'?l.btn_pause:l.btn_skip):(!T.running&&T.mode==='paused'?l.btn_resume:l.btn_start);
+  rLangBar();
+}
+
+function rLangBar(){
+  const sc=document.getElementById('langScroll');sc.innerHTML='';
+  Object.entries(LNG).forEach(([code,lng])=>{
+    const b=document.createElement('button');b.className='lb'+(S.lang===code?' on':'');b.textContent=lng.name;
+    b.onclick=()=>{S.lang=code;save();applyLang();render();};sc.appendChild(b);
+  });
+}
+
+function sd(sk){
+  const recs=S.records.filter(r=>r.skill===sk);
+  const totalMin=recs.reduce((a,r)=>a+r.dur,0);
+  const today=new Date().toDateString();
+  const todayMin=recs.filter(r=>new Date(r.date).toDateString()===today).reduce((a,r)=>a+r.dur,0);
+  const days=[...new Set(recs.map(r=>new Date(r.date).toDateString()))].length;
+  const streak=calcStreak(recs);
+  return{totalMin,todayMin,days,recs,streak};
+}
+function calcStreak(recs){
+  if(!recs.length)return 0;
+  const days=[...new Set(recs.map(r=>new Date(r.date).toDateString()))].sort((a,b)=>new Date(b)-new Date(a));
+  let s=0;const now=new Date();
+  for(let i=0;i<days.length;i++){const d=Math.floor((now-new Date(days[i]))/86400000);if(d===i||d===i+1)s++;else break;}
+  return s;
+}
+
+function render(){rSkills();rStats();rBadges();rLog();rSettings();rPips();}
+
+function rSkills(){
+  const l=L();const row=document.getElementById('skillRow');row.innerHTML='';
+  S.skills.forEach(s=>{const c=document.createElement('div');c.className='sp'+(s===S.active?' on':'');c.textContent=s;c.onclick=()=>{S.active=s;save();render();checkSmartTip();};row.appendChild(c);});
+  const a=document.createElement('div');a.className='sp add';a.textContent=l.add_skill;a.onclick=openModal;row.appendChild(a);
+}
+
+function rStats(){
+  const l=L();const{totalMin,todayMin,days,streak}=sd(S.active);
+  const hrs=totalMin/60;const remain=Math.max(0,10000-hrs);const pct=(hrs/10000)*100;
+  document.getElementById('streakEl').textContent=(streak?'🔥':'⚪')+' '+streak+' '+l.streak;
+  document.getElementById('sTotal').innerHTML=hrs<1?`${totalMin}<span class="u"> ${l.mu}</span>`:`${hrs.toFixed(1)}<span class="u"> ${l.hu}</span>`;
+  document.getElementById('sRemain').innerHTML=`${remain.toFixed(0)}<span class="u"> ${l.hu}</span>`;
+  document.getElementById('sToday').innerHTML=`${todayMin}<span class="u"> ${l.mu}</span>`;
+  document.getElementById('sPct').textContent=pct.toFixed(4)+l.stat_pct;
+  document.getElementById('pPct').textContent=pct.toFixed(4)+'%';
+  document.getElementById('pFill').style.width=Math.max(0.05,pct)+'%';
+  if(days>=2&&totalMin>0){
+    const avg=totalMin/days;const dl=(remain*60)/avg;const est=new Date();est.setDate(est.getDate()+Math.ceil(dl));
+    document.getElementById('sEst').textContent=l.est_y.replace('{y}',(dl/365).toFixed(1));
+    document.getElementById('sAvg').textContent=l.avg_n.replace('{n}',Math.round(avg));
+    document.getElementById('pEst').textContent=l.pest.replace('{y}',est.getFullYear());
+  }else{document.getElementById('sEst').textContent=l.logmore;document.getElementById('sAvg').textContent=l.nodata;document.getElementById('pEst').textContent=l.keep;}
+}
+
+function rBadges(){
+  const l=L();const{totalMin}=sd(S.active);const hrs=totalMin/60;
+  if(!S.badges[S.active])S.badges[S.active]=[];
+  document.getElementById('badgesEl').innerHTML=MS.map(m=>{const e=hrs>=m.h;return`<div class="bitem${e?' got':''}"><div class="bicon">${m.icon}</div><div class="bhrs">${m.lbl}</div>${e?`<div class="bdone">${l.bdone}</div>`:''}</div>`;}).join('');
+}
+
+function checkBadges(sk,prev,nw){
+  if(!S.badges[sk])S.badges[sk]=[];
+  MS.forEach(m=>{if(nw/60>=m.h&&prev/60<m.h&&!S.badges[sk].includes(m.h)){S.badges[sk].push(m.h);showToast(m.icon+' '+m.lbl+'!');}});
+}
+
+function checkSmartTip(){
+  const l=L();const{totalMin,todayMin,streak,recs}=sd(S.active);
+  if(totalMin===0){document.getElementById('smartTip').className='smart-tip';return;}
+  let msg=null;
+  if(todayMin===0&&totalMin>0)msg=l.smart_tips[0];
+  else if(streak===0&&recs.length>2)msg=l.smart_tips[1].replace('{days}','3');
+  if(msg){document.getElementById('smartTipTxt').innerHTML=msg;document.getElementById('smartTip').className='smart-tip show';}
+  else document.getElementById('smartTip').className='smart-tip';
+}
+
+function rLog(){
+  const l=L();const{recs}=sd(S.active);const list=document.getElementById('logEl');
+  if(!recs.length){list.innerHTML=`<div class="elog">// ${l.nodata}</div>`;return;}
+  const sorted=[...recs].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+  list.innerHTML=sorted.map(r=>{const d=new Date(r.date);const ds=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;return`<div class="litem"><div class="lleft"><div class="ldot"></div><span class="ldate">${ds}</span><span class="ltag">${r.skill}</span></div><span class="ldur">${r.dur}${l.mu}</span></div>`;}).join('');
+}
+
+function rSettings(){
+  const l=L();
+  document.getElementById('pMin').value=S.settings.p;document.getElementById('rMin').value=S.settings.r;
+  document.getElementById('pVal').textContent=S.settings.p+' '+l.mu;document.getElementById('rVal').textContent=S.settings.r+' '+l.mu;
+  document.getElementById('pchips').innerHTML=l.presets.map(pr=>`<button class="pc${S.settings.p===pr.p&&S.settings.r===pr.r?' on':''}" onclick="applyP(${pr.p},${pr.r})">${pr.l}</button>`).join('');
+}
+
+function rPips(){
+  let h='';for(let i=0;i<4;i++){if(i<T.sess)h+='<div class="pip done"></div>';else if(i===T.sess&&T.running&&T.mode==='practice')h+='<div class="pip cur"></div>';else h+='<div class="pip"></div>';}
+  document.getElementById('pips').innerHTML=h;
+}
+
+function fmt(s){return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+// ─── TIMER ─────────────────────────────────────────────────────
+function handleMain(){
+  if(!T.running&&T.mode==='idle')startP();
+  else if(T.running&&T.mode==='practice')pauseP();
+  else if(!T.running&&T.mode==='paused')resumeP();
+  else if(T.mode==='rest')skipRest();
+}
+
+function startP(){
+  const l=L();T.running=true;T.mode='practice';T.el=0;
+  document.getElementById('restBar').className='rest-bar';
+  document.getElementById('tcrd').className='tcrd active';
+  document.getElementById('tstat').textContent=l.s_prac+' · '+S.active;
+  document.getElementById('mainBtn').textContent=l.btn_pause;document.getElementById('mainBtn').className='btn btn-p';
+  if(!document.getElementById('endBtn')){const b=document.createElement('button');b.className='btn btn-e';b.id='endBtn';b.textContent=l.btn_end;b.onclick=endSess;document.getElementById('bclust').appendChild(b);}
+  T.iv=setInterval(tickP,1000);rPips();
+}
+
+function tickP(){
+  T.el++;document.getElementById('tbig').textContent=fmt(T.el);
+  if(T.el>=S.settings.p*60){clearInterval(T.iv);T.running=false;const mins=S.settings.p;saveRec(mins);T.sess++;rPips();startAlert(true,mins);}
+}
+
+function pauseP(){const l=L();clearInterval(T.iv);T.running=false;T.mode='paused';document.getElementById('mainBtn').textContent=l.btn_resume;document.getElementById('mainBtn').className='btn btn-s';document.getElementById('tstat').textContent=l.s_pause;}
+function resumeP(){const l=L();T.running=true;T.mode='practice';document.getElementById('mainBtn').textContent=l.btn_pause;document.getElementById('mainBtn').className='btn btn-p';document.getElementById('tstat').textContent=l.s_prac+' · '+S.active;T.iv=setInterval(tickP,1000);}
+function endSess(){clearInterval(T.iv);clearInterval(T.riv);const mins=Math.round(T.el/60);if(mins>0){saveRec(mins);startAlert(true,mins);}else resetT();}
+
+function saveRec(mins){
+  const sk=S.active;const{totalMin}=sd(sk);
+  S.records.push({skill:sk,dur:mins,date:new Date().toISOString()});
+  checkBadges(sk,totalMin,totalMin+mins);save();rStats();rBadges();rLog();checkSmartTip();
+}
+
+// ─── CHIME ALERT (repeating) ───────────────────────────────────
+function chime(strong){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const vol=strong?0.2:0.09;
+    const melody=strong?[523,659,784,1047]:[523,659,784];
+    melody.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;
+      const t=ctx.currentTime+i*0.13;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.03);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      o.start(t);o.stop(t+0.5);
+    });
+  }catch(e){}
+}
+
+function startAlert(isPrac,mins){
+  stopAlert();
+  chime(isPrac);
+  alertIv=setInterval(()=>chime(isPrac),3000);
+  showDonePopup(mins,isPrac);
+}
+
+function stopAlert(){if(alertIv){clearInterval(alertIv);alertIv=null;}}
+
+function startRestTimer(){
+  const l=L();T.mode='rest';T.rel=0;const rs=S.settings.r*60;
+  document.getElementById('restBar').className='rest-bar show';
+  document.getElementById('restMsg').textContent=l.rest_msg;
+  document.getElementById('tcrd').className='tcrd resting';
+  document.getElementById('tstat').textContent=l.s_rest;
+  document.getElementById('mainBtn').textContent=l.btn_skip;document.getElementById('mainBtn').className='btn btn-sk';
+  const e=document.getElementById('endBtn');if(e)e.remove();
+  document.getElementById('tbig').textContent=fmt(rs);
+  T.riv=setInterval(()=>{T.rel++;const left=rs-T.rel;document.getElementById('tbig').textContent=fmt(left);document.getElementById('restTime').textContent=fmt(left);if(left<=0){clearInterval(T.riv);startAlert(false,0);}},1000);
+}
+
+function skipRest(){clearInterval(T.riv);resetT();}
+
+function resetT(){
+  const l=L();clearInterval(T.iv);clearInterval(T.riv);
+  T.running=false;T.mode='idle';T.el=0;
+  document.getElementById('tbig').textContent='00:00';
+  document.getElementById('tstat').textContent=l.s_ready;
+  document.getElementById('tcrd').className='tcrd';
+  document.getElementById('mainBtn').textContent=l.btn_start;document.getElementById('mainBtn').className='btn btn-s';
+  document.getElementById('restBar').className='rest-bar';
+  const e=document.getElementById('endBtn');if(e)e.remove();
+  rPips();
+}
+
+// ─── DONE POPUP ────────────────────────────────────────────────
+function getAutoMsg(mins){
+  const l=L();const{totalMin,recs,streak}=sd(S.active);
+  const am=l.auto_msgs;const hrs=(totalMin/60).toFixed(0);
+  if(recs.length<=1)return am.first;
+  const lastDate=recs.length>=2?new Date(recs.sort((a,b)=>new Date(b.date)-new Date(a.date))[1].date):null;
+  const daysSince=lastDate?Math.floor((new Date()-lastDate)/86400000):0;
+  if(daysSince>=3)return{...am.lazy,msg:am.lazy.msg.replace('{days}',daysSince)};
+  if(streak>=7)return{...am.streak,msg:am.streak.msg.replace('{streak}',streak)};
+  const milestoneHit=MS.filter(m=>totalMin/60>=m.h&&(totalMin-mins)/60<m.h);
+  if(milestoneHit.length)return{...am.milestone,msg:am.milestone.msg.replace('{hrs}',hrs)};
+  if(mins>=60)return{...am.long,msg:am.long.msg.replace('{mins}',mins)};
+  return am.default;
+}
+
+function showDonePopup(mins,isPrac){
+  if(!isPrac){document.getElementById('donePop').className='done-overlay show';document.getElementById('doneHeadline').textContent='Rest complete';document.getElementById('doneSub').textContent='Back to work.';document.getElementById('doneRest').style.display='none';document.getElementById('doneSkip').textContent=L().btn_start;setTimeout(()=>{document.getElementById('doneSkip').onclick=()=>{stopAlert();closeDone(true);};},0);document.getElementById('maxTxt').innerHTML='<b>Rest over.</b> <span class="hl">Time to get back to it.</span>';document.getElementById('maxAv').innerHTML=maxSVG('hype');document.getElementById('maxMood').textContent=L().moods.hype;return;}
+
+  const l=L();const{totalMin,todayMin,streak}=sd(S.active);
+  const tHrs=(totalMin/60);const remain=Math.max(0,10000-tHrs);const pct=(tHrs/10000)*100;
+  const now=new Date();
+  document.getElementById('doneSkill').textContent=S.active;
+  document.getElementById('doneTime').textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('ringN').textContent=mins;
+  const circ=232;const offset=circ-(circ*Math.min(100,(mins/90)*100)/100);
+  document.getElementById('ringFg').style.strokeDashoffset=offset;
+  document.getElementById('doneTopBar').style.background=mins>=60?'#4d9fff':mins>=30?'#e8ff47':'#e8ff47';
+  document.getElementById('doneHeadline').textContent=mins>=60?'Outstanding session!':mins>=30?'Solid session!':'Session complete';
+  document.getElementById('doneSub').textContent=streak>=7?`${streak} day streak — you're building a real habit.`:streak>=3?'Consistency is compounding.':'Keep showing up. That\'s how experts are made.';
+  document.getElementById('dst1').textContent=todayMin+'m';
+  document.getElementById('dst2').textContent=tHrs.toFixed(1);
+  document.getElementById('dst3').textContent=streak+'d';
+  document.getElementById('dpPct').textContent=pct.toFixed(4)+'%';
+  document.getElementById('dpLeft').textContent=remain.toFixed(0)+' hrs left';
+  document.getElementById('dpFill').style.width=Math.max(0.01,pct)+'%';
+  document.getElementById('doneRest').style.display='';
+  document.getElementById('doneSkip').textContent=l.done_skip;
+  document.getElementById('doneSkip').onclick=()=>closeDone(true);
+  document.getElementById('doneRest').onclick=()=>closeDone(false);
+  const autoMsg=getAutoMsg(mins);
+  document.getElementById('maxAv').innerHTML=maxSVG(autoMsg.mood);
+  document.getElementById('maxMood').textContent=l.moods[autoMsg.mood]||'';
+  document.getElementById('maxTxt').innerHTML=autoMsg.msg;
+  document.getElementById('donePop').className='done-overlay show';
+}
+
+function closeDone(skipRest){
+  stopAlert();
+  document.getElementById('donePop').className='done-overlay';
+  const notifTxt=document.getElementById('maxTxt').innerHTML;
+  if(notifTxt&&notifTxt.length>10){document.getElementById('notifBody').innerHTML=notifTxt;document.getElementById('aiNotif').className='ai-notif show';}
+  if(skipRest)resetT();else startRestTimer();
+}
+
+function dismissNotif(){document.getElementById('aiNotif').className='ai-notif';}
+
+// ─── AI COACH ──────────────────────────────────────────────────
+async function doAI(type){
+  const l=L();const aiMsg=document.getElementById('aiMsg');const aiActs=document.getElementById('aiActs');
+  const sys={roast:l.roast_sys,tips:l.tips_sys,forecast:l.fc_sys};
+  const q={roast:l.roast_q,tips:l.tips_q,forecast:l.fc_q};
+  aiMsg.innerHTML='<div class="ld"><div class="dots"><span></span><span></span><span></span></div>&nbsp; Max is thinking...</div>';
+  aiActs.querySelectorAll('button').forEach(b=>b.disabled=true);
+  try{
+    const{totalMin,todayMin,days,streak,recs}=sd(S.active);
+    const hrs=(totalMin/60).toFixed(1);const remain=(10000-totalMin/60).toFixed(0);const avg=days>0?(totalMin/days).toFixed(0):0;
+    const ctx=`Skill: ${S.active}. Total: ${hrs}hrs (${totalMin}min). Today: ${todayMin}min. Daily avg: ${avg}min over ${days} days. Streak: ${streak} days. Remaining: ${remain}hrs. Last 5: ${recs.slice(-5).map(r=>r.dur+'min').join(', ')||'none'}.`;
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:sys[type],messages:[{role:'user',content:ctx+'\n\n'+q[type]}]})});
+    const data=await resp.json();
+    const txt=(data.content?.map(i=>i.text||'').join('')||'').replace(/\n/g,'<br>');
+    aiMsg.innerHTML=txt||'No response.';
+    document.getElementById('notifBody').innerHTML=txt;
+    document.getElementById('aiNotif').className='ai-notif show';
+  }catch(e){aiMsg.innerHTML='AI requires API key to work. See setup instructions.';}
+  aiActs.querySelectorAll('button').forEach(b=>b.disabled=false);
+}
+
+// ─── UI HELPERS ────────────────────────────────────────────────
+function toggleSet(){const b=document.getElementById('setbody');const a=document.getElementById('sArr');b.classList.toggle('open');a.classList.toggle('open');}
+function onSet(){S.settings.p=parseInt(document.getElementById('pMin').value);S.settings.r=parseInt(document.getElementById('rMin').value);save();rSettings();}
+function applyP(p,r){S.settings.p=p;S.settings.r=r;save();rSettings();}
+function openModal(){document.getElementById('modal').className='mwrap open';document.getElementById('newSkill').value='';setTimeout(()=>document.getElementById('newSkill').focus(),50);}
+function closeModal(){document.getElementById('modal').className='mwrap';}
+function confirmSkill(){const v=document.getElementById('newSkill').value.trim();if(v&&!S.skills.includes(v)){S.skills.push(v);S.active=v;save();render();}closeModal();}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(()=>t.className='toast',3500);}
+document.getElementById('newSkill').addEventListener('keydown',e=>{if(e.key==='Enter')confirmSkill();if(e.key==='Escape')closeModal();});
+load();
+</script>
+</body>
+</html>
