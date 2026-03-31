@@ -123,6 +123,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:var(
 .btn:active{transform:scale(0.97);}
 .btn-s{background:var(--ac);color:#0a0a0f;border-color:var(--ac);font-weight:600;}
 .btn-s:hover{background:var(--ac2);}
+.btn-s.glow{animation:btnGlow 1s ease-in-out infinite;}
+@keyframes btnGlow{0%,100%{box-shadow:0 0 0 0 rgba(232,255,71,0.5);transform:scale(1);}50%{box-shadow:0 0 0 8px rgba(232,255,71,0);transform:scale(1.03);}}
 .btn-p{background:transparent;color:var(--t2);border-color:var(--b2);}
 .btn-p:hover{background:var(--card2);}
 .btn-e{background:transparent;color:var(--red);border-color:rgba(255,77,109,0.2);}
@@ -308,15 +310,31 @@ html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:var(
     </div>
   </div>
   <div class="ai-panel">
-    <div class="sec-lbl" id="l_coach">AI Coach</div>
+    <div class="sec-lbl" id="l_coach">AI Coach — Max</div>
     <div class="ai-card">
-      <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-nm">Max</div><div class="ai-tag">powered by claude</div></div>
+      <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-nm">Max</div><div class="ai-tag" id="aiTag">free</div></div>
       <div class="ai-body">
-        <div class="ai-msg" id="aiMsg">—</div>
-        <div class="ai-acts" id="aiActs">
-          <button class="aibtn pri" id="btn_roast" onclick="doAI('roast')">—</button>
-          <button class="aibtn" id="btn_tips" onclick="doAI('tips')">—</button>
-          <button class="aibtn" id="btn_fc" onclick="doAI('forecast')">—</button>
+        <!-- FREE: locked state -->
+        <div id="aiLocked">
+          <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;">
+            <svg width="44" height="52" viewBox="0 0 92 112" id="aiMaxPreview"></svg>
+            <div>
+              <div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:10px;">Max gives you <b style="color:var(--t1)">personalised coaching</b> after every session — brutally honest, genuinely helpful. <span style="color:var(--ac)">Upgrade to unlock.</span></div>
+              <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-bottom:12px;">✓ Auto-analysis after every session &nbsp; ✓ Practice tips &nbsp; ✓ Forecast</div>
+            </div>
+          </div>
+          <button class="btn btn-s" onclick="openUnlock()" style="width:100%;font-size:13px;" id="unlockBtn">🔓 Unlock AI Coach — $9 one-time</button>
+          <div style="text-align:center;font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:8px;">Already paid? <span onclick="openActivate()" style="color:var(--ac);cursor:pointer;text-decoration:underline;">Enter code</span></div>
+        </div>
+        <!-- PAID: unlocked state -->
+        <div id="aiUnlocked" style="display:none;">
+          <div class="ai-msg" id="aiMsg">—</div>
+          <div class="ai-acts" id="aiActs">
+            <button class="aibtn pri" id="btn_roast" onclick="doAI('roast')">—</button>
+            <button class="aibtn" id="btn_tips" onclick="doAI('tips')">—</button>
+            <button class="aibtn" id="btn_fc" onclick="doAI('forecast')">—</button>
+          </div>
+          <div style="text-align:right;margin-top:8px;"><span onclick="revokeAccess()" style="font-size:10px;color:var(--t3);cursor:pointer;font-family:var(--fm);">revoke access</span></div>
         </div>
       </div>
     </div>
@@ -363,15 +381,46 @@ html,body{min-height:100vh;background:var(--bg);color:var(--t1);font-family:var(
         <div class="dp-meta"><span id="dpPct">—</span><span id="dpLeft">—</span></div>
         <div class="dp-track"><div class="dp-fill" id="dpFill" style="width:0.01%"></div></div>
       </div>
-      <div class="done-btns">
-        <button class="btn btn-p" id="doneRest" onclick="closeDone(false)">Take rest</button>
-        <button class="btn btn-s" id="doneSkip" onclick="closeDone(true)">Continue ›</button>
+      <div class="done-btns" style="flex-direction:column;gap:8px;">
+        <button class="btn btn-s" id="doneNext" onclick="closeDoneStart()" style="width:100%">▶ Start next session</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-p" id="doneRest" onclick="closeDone(false)" style="flex:1">Take rest</button>
+          <button class="btn btn-p" id="doneDone" onclick="closeDone(true)" style="flex:1">Done for today</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="mwrap" id="modal">
+<div class="mwrap" id="unlockModal">
+  <div class="mbox" style="max-width:340px;">
+    <div style="text-align:center;margin-bottom:1.25rem;">
+      <svg width="56" height="68" viewBox="0 0 92 112" id="unlockMaxSvg" style="margin:0 auto 10px;display:block;"></svg>
+      <div style="font-family:var(--fd);font-size:18px;font-weight:700;color:var(--t1);margin-bottom:6px;">Unlock AI Coach</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6;">Max will personally coach you after every session. Honest. Sharp. Actually useful.</div>
+    </div>
+    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--t2);margin-bottom:8px;font-family:var(--fm);">What you get:</div>
+      <div style="font-size:12px;color:var(--t1);line-height:1.8;">✓ Auto AI feedback after every session<br>✓ Personalised practice tips<br>✓ Progress forecast<br>✓ All 10 languages<br>✓ Lifetime access — one payment</div>
+    </div>
+    <a href="https://https://yenyeh.gumroad.com/l/jaccrv" target="_blank" class="btn btn-s" style="display:block;width:100%;text-align:center;text-decoration:none;margin-bottom:10px;font-size:14px;">Buy for $9 →</a>
+    <div style="text-align:center;font-size:11px;color:var(--t3);font-family:var(--fm);margin-bottom:12px;">After payment, Gumroad emails you an activation code</div>
+    <button class="btn btn-p" onclick="closeUnlock()" style="width:100%;font-size:13px;">Maybe later</button>
+  </div>
+</div>
+
+<div class="mwrap" id="activateModal">
+  <div class="mbox">
+    <h3 id="act_title">Enter activation code</h3>
+    <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:12px;">Check your email from Gumroad after purchase</div>
+    <input type="text" id="codeInput" placeholder="XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:2px;">
+    <div style="font-size:11px;color:var(--red);font-family:var(--fm);margin-top:-8px;margin-bottom:10px;display:none;" id="codeErr">Invalid code. Please check and try again.</div>
+    <div class="mbtns">
+      <button class="btn btn-p" onclick="closeActivate()">Cancel</button>
+      <button class="btn btn-s" onclick="submitCode()">Activate</button>
+    </div>
+  </div>
+</div>
   <div class="mbox">
     <h3 id="m_title">New skill</h3>
     <input type="text" id="newSkill" maxlength="24">
@@ -528,7 +577,6 @@ function applyLang(){
   document.getElementById('dismissBtn').textContent=l.dismiss;
   document.getElementById('notifSub').textContent=l.notif_sub;
   document.getElementById('doneRest').textContent=l.done_rest;
-  document.getElementById('doneSkip').textContent=l.done_skip;
   document.getElementById('dl_today').textContent=l.dl_today;
   document.getElementById('dl_total').textContent=l.dl_total;
   document.getElementById('dl_streak').textContent=l.dl_streak;
@@ -655,7 +703,14 @@ function tickP(){
 
 function pauseP(){const l=L();clearInterval(T.iv);T.running=false;T.mode='paused';document.getElementById('mainBtn').textContent=l.btn_resume;document.getElementById('mainBtn').className='btn btn-s';document.getElementById('tstat').textContent=l.s_pause;}
 function resumeP(){const l=L();T.running=true;T.mode='practice';document.getElementById('mainBtn').textContent=l.btn_pause;document.getElementById('mainBtn').className='btn btn-p';document.getElementById('tstat').textContent=l.s_prac+' · '+S.active;T.iv=setInterval(tickP,1000);}
-function endSess(){clearInterval(T.iv);clearInterval(T.riv);const mins=Math.round(T.el/60);if(mins>0){saveRec(mins);startAlert(true,mins);}else resetT();}
+function endSess(){
+  clearInterval(T.iv);clearInterval(T.riv);
+  const secs=T.el;
+  if(secs<10){resetT(false);return;}
+  const mins=Math.max(1,Math.round(secs/60));
+  saveRec(mins);
+  startAlert(true,mins);
+}
 
 function saveRec(mins){
   const sk=S.active;const{totalMin}=sd(sk);
@@ -667,15 +722,17 @@ function saveRec(mins){
 function chime(strong){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const vol=strong?0.2:0.09;
-    const melody=strong?[523,659,784,1047]:[523,659,784];
-    melody.forEach((f,i)=>{
+    const vol=strong?0.22:0.11;
+    const freqs=strong?[330,415,494,659]:[330,415,494];
+    freqs.forEach((f,i)=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;
-      const t=ctx.currentTime+i*0.13;
-      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.03);
-      g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
-      o.start(t);o.stop(t+0.5);
+      o.connect(g);g.connect(ctx.destination);
+      o.type='triangle';o.frequency.value=f;
+      const t=ctx.currentTime+i*0.08;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+      o.start(t);o.stop(t+0.45);
     });
   }catch(e){}
 }
@@ -701,15 +758,17 @@ function startRestTimer(){
   T.riv=setInterval(()=>{T.rel++;const left=rs-T.rel;document.getElementById('tbig').textContent=fmt(left);document.getElementById('restTime').textContent=fmt(left);if(left<=0){clearInterval(T.riv);startAlert(false,0);}},1000);
 }
 
-function skipRest(){clearInterval(T.riv);resetT();}
+function skipRest(){clearInterval(T.riv);resetT(true);}
 
-function resetT(){
+function resetT(glow){
   const l=L();clearInterval(T.iv);clearInterval(T.riv);
   T.running=false;T.mode='idle';T.el=0;
   document.getElementById('tbig').textContent='00:00';
   document.getElementById('tstat').textContent=l.s_ready;
   document.getElementById('tcrd').className='tcrd';
-  document.getElementById('mainBtn').textContent=l.btn_start;document.getElementById('mainBtn').className='btn btn-s';
+  const mb=document.getElementById('mainBtn');
+  mb.textContent=l.btn_start;mb.className='btn btn-s'+(glow?' glow':'');
+  if(glow)mb.addEventListener('click',()=>mb.classList.remove('glow'),{once:true});
   document.getElementById('restBar').className='rest-bar';
   const e=document.getElementById('endBtn');if(e)e.remove();
   rPips();
@@ -731,7 +790,34 @@ function getAutoMsg(mins){
 }
 
 function showDonePopup(mins,isPrac){
-  if(!isPrac){document.getElementById('donePop').className='done-overlay show';document.getElementById('doneHeadline').textContent='Rest complete';document.getElementById('doneSub').textContent='Back to work.';document.getElementById('doneRest').style.display='none';document.getElementById('doneSkip').textContent=L().btn_start;setTimeout(()=>{document.getElementById('doneSkip').onclick=()=>{stopAlert();closeDone(true);};},0);document.getElementById('maxTxt').innerHTML='<b>Rest over.</b> <span class="hl">Time to get back to it.</span>';document.getElementById('maxAv').innerHTML=maxSVG('hype');document.getElementById('maxMood').textContent=L().moods.hype;return;}
+  if(!isPrac){
+    const l=L();
+    document.getElementById('donePop').className='done-overlay show';
+    document.getElementById('doneHeadline').textContent='Rest complete';
+    document.getElementById('doneSub').textContent='Time to get back to it.';
+    document.getElementById('doneNext').textContent='▶ Start next session';
+    document.getElementById('doneNext').onclick=()=>closeDoneStart();
+    document.getElementById('doneRest').style.display='none';
+    document.getElementById('doneDone').textContent='Done for today';
+    document.getElementById('doneDone').onclick=()=>closeDone(true);
+    document.getElementById('maxTxt').innerHTML='<b>Rest over.</b> <span class="hl">Ready for the next round?</span> Hit start when you are.';
+    document.getElementById('maxAv').innerHTML=maxSVG('hype');
+    document.getElementById('maxMood').textContent=L().moods.hype;
+    document.getElementById('doneSkill').textContent=S.active;
+    const{totalMin,todayMin,streak}=sd(S.active);
+    const tHrs=(totalMin/60);const remain=Math.max(0,10000-tHrs);const pct=(tHrs/10000)*100;
+    document.getElementById('dst1').textContent=todayMin+'m';
+    document.getElementById('dst2').textContent=tHrs.toFixed(1);
+    document.getElementById('dst3').textContent=streak+'d';
+    document.getElementById('dpPct').textContent=pct.toFixed(4)+'%';
+    document.getElementById('dpLeft').textContent=remain.toFixed(0)+' hrs left';
+    document.getElementById('dpFill').style.width=Math.max(0.01,pct)+'%';
+    document.getElementById('ringN').textContent=S.settings.r;
+    document.getElementById('doneTopBar').style.background='#4d9fff';
+    document.getElementById('ringFg').style.stroke='#4d9fff';
+    document.getElementById('ringFg').style.strokeDashoffset='0';
+    return;
+  }
 
   const l=L();const{totalMin,todayMin,streak}=sd(S.active);
   const tHrs=(totalMin/60);const remain=Math.max(0,10000-tHrs);const pct=(tHrs/10000)*100;
@@ -751,9 +837,12 @@ function showDonePopup(mins,isPrac){
   document.getElementById('dpLeft').textContent=remain.toFixed(0)+' hrs left';
   document.getElementById('dpFill').style.width=Math.max(0.01,pct)+'%';
   document.getElementById('doneRest').style.display='';
-  document.getElementById('doneSkip').textContent=l.done_skip;
-  document.getElementById('doneSkip').onclick=()=>closeDone(true);
   document.getElementById('doneRest').onclick=()=>closeDone(false);
+  document.getElementById('doneNext').textContent='▶ Start next session';
+  document.getElementById('doneNext').onclick=()=>closeDoneStart();
+  document.getElementById('doneDone').textContent='Done for today';
+  document.getElementById('doneDone').onclick=()=>closeDone(true);
+  document.getElementById('ringFg').style.stroke='var(--ac)';
   const autoMsg=getAutoMsg(mins);
   document.getElementById('maxAv').innerHTML=maxSVG(autoMsg.mood);
   document.getElementById('maxMood').textContent=l.moods[autoMsg.mood]||'';
@@ -761,12 +850,21 @@ function showDonePopup(mins,isPrac){
   document.getElementById('donePop').className='done-overlay show';
 }
 
-function closeDone(skipRest){
+function closeDoneStart(){
   stopAlert();
   document.getElementById('donePop').className='done-overlay';
   const notifTxt=document.getElementById('maxTxt').innerHTML;
   if(notifTxt&&notifTxt.length>10){document.getElementById('notifBody').innerHTML=notifTxt;document.getElementById('aiNotif').className='ai-notif show';}
-  if(skipRest)resetT();else startRestTimer();
+  resetT(false);
+  startP();
+}
+
+function closeDone(isDone){
+  stopAlert();
+  document.getElementById('donePop').className='done-overlay';
+  const notifTxt=document.getElementById('maxTxt').innerHTML;
+  if(notifTxt&&notifTxt.length>10){document.getElementById('notifBody').innerHTML=notifTxt;document.getElementById('aiNotif').className='ai-notif show';}
+  if(isDone)resetT(false);else startRestTimer();
 }
 
 function dismissNotif(){document.getElementById('aiNotif').className='ai-notif';}
@@ -800,8 +898,62 @@ function openModal(){document.getElementById('modal').className='mwrap open';doc
 function closeModal(){document.getElementById('modal').className='mwrap';}
 function confirmSkill(){const v=document.getElementById('newSkill').value.trim();if(v&&!S.skills.includes(v)){S.skills.push(v);S.active=v;save();render();}closeModal();}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(()=>t.className='toast',3500);}
+// ─── FREEMIUM ──────────────────────────────────────────────────
+const VALID_CODES=['MAX9-2025-UNLOCK','MAX9-AI-COACH1','10KH-PAID-ACCESS','MAXC-OACH-2025A','10KH-OUR-S2025B','MAXU-NLCK-AIPRM'];
+function isPaid(){return localStorage.getItem('10k_paid')==='true';}
+function setPaid(){localStorage.setItem('10k_paid','true');}
+function revokePaid(){localStorage.removeItem('10k_paid');}
+
+function updateAIPanel(){
+  const paid=isPaid();
+  document.getElementById('aiLocked').style.display=paid?'none':'block';
+  document.getElementById('aiUnlocked').style.display=paid?'block':'none';
+  document.getElementById('aiTag').textContent=paid?'pro ✓':'free';
+  document.getElementById('aiTag').style.color=paid?'var(--ac)':'var(--t3)';
+  if(document.getElementById('aiMaxPreview'))document.getElementById('aiMaxPreview').innerHTML=maxSVG('hype');
+  if(document.getElementById('unlockMaxSvg'))document.getElementById('unlockMaxSvg').innerHTML=maxSVG('proud');
+  if(paid&&document.getElementById('aiMsg')&&document.getElementById('aiMsg').textContent==='—'){
+    document.getElementById('aiMsg').innerHTML=L().ai_intro;
+  }
+}
+
+function openUnlock(){document.getElementById('unlockModal').className='mwrap open';if(document.getElementById('unlockMaxSvg'))document.getElementById('unlockMaxSvg').innerHTML=maxSVG('proud');}
+function closeUnlock(){document.getElementById('unlockModal').className='mwrap';}
+function openActivate(){closeUnlock();document.getElementById('activateModal').className='mwrap open';document.getElementById('codeInput').value='';document.getElementById('codeErr').style.display='none';setTimeout(()=>document.getElementById('codeInput').focus(),50);}
+function closeActivate(){document.getElementById('activateModal').className='mwrap';}
+function submitCode(){
+  const v=document.getElementById('codeInput').value.trim().toUpperCase();
+  if(VALID_CODES.includes(v)){
+    setPaid();closeActivate();updateAIPanel();
+    showToast('✓ AI Coach unlocked! Welcome to Pro.');
+  }else{
+    document.getElementById('codeErr').style.display='block';
+  }
+}
+function revokeAccess(){if(confirm('Remove Pro access from this device?')){revokePaid();updateAIPanel();}}
+document.getElementById('codeInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitCode();if(e.key==='Escape')closeActivate();});
+
+// Override doAI to check paid status
+const _doAI=doAI;
+window.doAI=async function(type){if(!isPaid()){openUnlock();return;}_doAI(type);};
+
+// Override showDonePopup to show upgrade prompt for free users
+const _showDonePopup=showDonePopup;
+window.showDonePopup=function(mins,isPrac){
+  _showDonePopup(mins,isPrac);
+  if(!isPaid()&&isPrac){
+    setTimeout(()=>{
+      const el=document.getElementById('maxTxt');
+      if(el){
+        el.innerHTML=el.innerHTML+'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(232,255,71,0.15);font-size:12px;color:var(--t3);">Want <span style="color:var(--ac);cursor:pointer;text-decoration:underline;" onclick="document.getElementById(\'donePop\').className=\'done-overlay\';openUnlock();">real AI coaching from Max</span>? Upgrade for $9.</div>';
+      }
+    },100);
+  }
+};
+
 document.getElementById('newSkill').addEventListener('keydown',e=>{if(e.key==='Enter')confirmSkill();if(e.key==='Escape')closeModal();});
 load();
+setTimeout(updateAIPanel,100);
 </script>
 </body>
 </html>
